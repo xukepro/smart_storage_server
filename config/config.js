@@ -1,12 +1,12 @@
 var fs = require('fs');
 
 var config = {
-  'http_port': '3006',
-  'https_port': '3006',
-  // 'sec': {
-  //   'key': fs.readFileSync(`${__dirname}/../../../server_certificates/server.key`),
-  //   'crt': fs.readFileSync(`${__dirname}/../../../server_certificates/server.crt`)
-  // },
+  'http_port': '3005',
+  'https_port': '3005',
+  'sec': {
+    'key': fs.readFileSync(`${__dirname}/../../../server_certificates/server.key`),
+    'crt': fs.readFileSync(`${__dirname}/../../../server_certificates/server.crt`)
+  },
 
 }
 
