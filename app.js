@@ -88,7 +88,7 @@ wssServer.on('request', function (request) {
         // console.log('\nReceive Message from '+query.user_id+'('+query.client_type+') at '+Date.now()+':');
         // let tms = Date.now();
         if (!validator.isJSON(message.utf8Data)){
-          console.log('message from ' + query.user_id + '(anchor) is not a json string')
+          console.log('message from ' + query.user_id + ' is not a json string')
           return;
         }
         var json = JSON.parse(message.utf8Data);
@@ -118,7 +118,7 @@ wssServer.on('request', function (request) {
           //   timestamp: 1554861533000
           // }
           if (!('anchors' in json) || !('timestamp' in json)) {
-            console.log('wrong data from ' + query.user_id + '(anchor)');
+            console.log('wrong data from ' + query.user_id + '(root)');
             return;
           }
           /*------------ format of tidied_json --------------/
