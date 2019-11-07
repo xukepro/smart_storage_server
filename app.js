@@ -77,15 +77,18 @@ wssServer.on('request', function (request) {
     connectionsForAnchor[query.user_id]['nearest'] = [];
   } else { }
 
-  var str_aId = '', n_aId = 0;
-  for (let aId in connectionsForAnchor) { str_aId += aId+' '; n_aId++; }
-  console.log(n_aId + ' anchors are accepted: [ ' + str_aId + ']');
+  // var str_aId = '', n_aId = 0;
+  // for (let aId in connectionsForAnchor) { str_aId += aId+' '; n_aId++; }
+  // console.log(n_aId + ' anchors are accepted: [ ' + str_aId + ']');
 
   connection.on('message', function (message) {
     try {
       if (message.type === 'utf8') {
         // console.log('\nReceive Message from '+query.user_id+'('+query.client_type+') at '+Date.now()+':');
         // let tms = Date.now();
+        if (!validator.isJSON(message.utf8Data)){
+          console.log('message from ' + query.user_id + '(anchor) is not a json string')
+        }
         var json = JSON.parse(message.utf8Data);
         // console.log(JSON.stringify(json, null, 2));
 
@@ -279,9 +282,9 @@ wssServer.on('request', function (request) {
     } else if (query.client_type === 'anchor') {
       delete connectionsForAnchor[query.user_id];
     } else { }
-    str_aId = ''; n_aId = 0;
-    for (let aId in connectionsForAnchor) { str_aId += aId+' '; n_aId++; }
-    console.log(n_aId + ' anchors are reamined: [ ' + str_aId + ']');
+    // str_aId = ''; n_aId = 0;
+    // for (let aId in connectionsForAnchor) { str_aId += aId+' '; n_aId++; }
+    // console.log(n_aId + ' anchors are reamined: [ ' + str_aId + ']');
   }); 
   
 });
