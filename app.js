@@ -112,7 +112,7 @@ wssServer.on('request', function (request) {
           //   },
           //   timestamp: 1554861533000
           // }
-          if (!('anchors' in json)) {
+          if (!('anchors' in json) || !('timestamp' in json)) {
             console.log('wrong data from ' + query.user_id + '(anchor)');
             return;
           }
