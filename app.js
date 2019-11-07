@@ -7,6 +7,7 @@ var acoords = require('./data/coordinate').getAcoords;
 
 var locationManager = require('./lib/locationmanager');
 var coordConverter = require('./lib/coordConverter');
+var decoder = require('./lib/decoder');
 
 var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27017/";
@@ -29,7 +30,7 @@ var server = http.createServer(function (request, response) {
   response.writeHead(404);
   response.end();
 });
-server.listen(config.https_port, function () {
+server.listen(config.http_port, function () {
   console.log((new Date()) + ' Server is listening on port ' + config.http_port);
 });
 
@@ -49,8 +50,9 @@ function originIsAllowed(origin) {
 }
 
 var connectionsForMap = {};  // websocket connections for webpages, add floorInfo
+var connectionsForRoot = {};  // websocket connections for root node
 var connectionsForAnchor = {};  // websocket connections for anchors, add nearset
-var scaned_tags = {};
+// var scaned_tags = {};
 
 wssServer.on('request', function (request) {
 
@@ -68,62 +70,176 @@ wssServer.on('request', function (request) {
 
   if (query.client_type === 'map') {
     connectionsForMap[query.user_id] = connection;
+  } else if (query.client_type === 'root')  {
+    connectionsForRoot[query.user_id] = connection;
   } else if (query.client_type === 'anchor')  {
     connectionsForAnchor[query.user_id] = connection;
     connectionsForAnchor[query.user_id]['nearest'] = [];
-  } else {
-    
-  }
+  } else { }
 
   var str_aId = '', n_aId = 0;
   for (let aId in connectionsForAnchor) { str_aId += aId+' '; n_aId++; }
   console.log(n_aId + ' anchors are accepted: [ ' + str_aId + ']');
-  // console.log('connectionsForAnchor: ' + connectionsForAnchor);
 
   connection.on('message', function (message) {
-    if (message.type === 'utf8') {
-      // console.log('\nReceive Message from '+query.user_id+'('+query.client_type+') at '+Date.now()+':');
-      let tms = Date.now();
-      var json = JSON.parse(message.utf8Data);
-      // console.log(JSON.stringify(json, null, 2));
-      if (query.client_type === 'map') {
+    try {
+      if (message.type === 'utf8') {
+        // console.log('\nReceive Message from '+query.user_id+'('+query.client_type+') at '+Date.now()+':');
+        // let tms = Date.now();
+        var json = JSON.parse(message.utf8Data);
+        // console.log(JSON.stringify(json, null, 2));
 
-        connectionsForMap[query.user_id].floorInfo = json; // get floorInfo from webpage
-        console.log('floorInfo: ' + JSON.stringify(json));
+        if (query.client_type === 'map') {
+          connectionsForMap[query.user_id].floorInfo = json; // get floorInfo from webpage
+          console.log('floorInfo: ' + JSON.stringify(json));
 
-      } else if (query.client_type === 'anchor') {
-
-        try {
-          json.timestamp = tms;
-          console.log('\nMessage from ' + query.user_id + '(' + query.client_type + ') at ' + tms + ':');
-          console.log(JSON.stringify(json.tags));
-
-          for (let tag of json.tags) {
-            let tId = tag[0];
-            if (scaned_tags[tId] == undefined) { // scaned this tag for the first time
-              scaned_tags[tId] = {'timestamp': 0};
-            }
-            let this_ts = parseInt(json.timestamp / 1000)
-            if (scaned_tags[tId] == undefined ||
-                ( this_ts != (scaned_tags[tId]['timestamp']) &&
-                  this_ts != (scaned_tags[tId]['timestamp'] + 1))) {
-              scaned_tags[tId] = {
-                'timestamp': this_ts,
-                'aIds': [],
-                'anchors': []
-              };
-            }
-            let aIndex = scaned_tags[tId]['aIds'].indexOf(json.aId);
-            if (aIndex == -1) {    
-              scaned_tags[tId]['aIds'].push(json.aId);
-              scaned_tags[tId]['anchors'].push({
-                'aId': json.aId,
-                'rssi': tag[1]
+        } else if (query.client_type === 'root') {
+          // json = {
+          //   anchors: {
+          //     '904E9140F930': [
+          //       new Buffer("E2FDA50693A4E24FB1AFCFC6EB0764782527110001", 'hex'),
+          //       new Buffer("E1FDA50693A4E24FB1AFCFC6EB0764782527110002", 'hex'),
+          //       new Buffer("E0FDA50693A4E24FB1AFCFC6EB0764782527110003", 'hex')
+          //     ],
+          //     '904E9140F931': [
+          //       new Buffer("D2FDA50693A4E24FB1AFCFC6EB0764782527110001", 'hex'),
+          //       new Buffer("E8FDA50693A4E24FB1AFCFC6EB0764782527110002", 'hex')
+          //     ],
+          //     '904E9140F932': [
+          //       new Buffer("D6FDA50693A4E24FB1AFCFC6EB0764782527110001", 'hex'),
+          //       new Buffer("D1FDA50693A4E24FB1AFCFC6EB0764782527110002", 'hex')
+          //     ],
+          //   },
+          //   timestamp: 1554861533000
+          // }
+          if (!('anchors' in json)) {
+            console.log('wrong data from ' + query.user_id + '(anchor)');
+            return;
+          }
+          /*------------ format of tidied_json --------------/
+          tidied_json = {
+            tags: {
+              "10001-00432": [
+                {"aId": "00001-00001", "rssi": -44},
+                {"aId": "00001-00002", "rssi": -53},
+                {"aId": "00001-00003", "rssi": -60}
+              ],
+              "10001-00433": [
+                {"aId": "00001-00001", "rssi": -46},
+                {"aId": "00001-00002", "rssi": -52}
+              ],
+            },
+            "timestamp": 1572850520
+          }
+          /-------------------------------------------------*/
+          var tidied_json = {'tags': {}, 'timestamp': json.timestamp};
+          for (let aId in json.anchors) {
+            for (let data of json.anchors[aId]) {
+              var tag = decoder.tagData(data);
+              if (!(tag.tId in tidied_json.tags)) {
+                tidied_json.tags[tag.tId] = [];
+              }
+              tidied_json.tags[tag.tId].push({
+                'aId': aId,
+                'rssi': tag.rssi
               });
-            } else {
-              scaned_tags[tId]['anchors'][aIndex].rssi = tag[1];
             }
           }
+          console.log('tidied_json: ' + JSON.stringify(tidied_json));
+
+          let results = {'n': 0, 'tags': {}};
+          for (let tId in tidied_json.tags) {
+            var anchors = tidied_json.tags[tId];
+            if (anchors.length >= 3) {
+              // anchors.push({
+              //   'aId': '00001-00002',
+              //   'rssi': -53
+              // });
+              // anchors.push({
+              //   'aId': '00001-00003',
+              //   'rssi': -60
+              // });
+              anchors.sort(keysort('rssi', true));
+              
+              var input = {
+                'anchors': anchors,
+                'timestamp':tidied_json.timestamp
+              };
+              result = locateForTag(tId, input);
+              result.tId = tId;
+
+              if ('pos' in result) {
+                results.tags[result.tId] = {
+                  'pos': result.pos,
+                  'DOP': result.DOP,
+                  'weight': result.weight,
+                  'timestamp': result.timestamp
+                };
+                results.n++;
+              }
+              
+            }
+          }
+
+          if (results.n == 0) return;
+          console.log('\nResults: ' + JSON.stringify(results));
+          
+          // return results to map
+          var answer = JSON.parse(JSON.stringify(results));
+          for (let user_id in connectionsForMap) {
+            if (typeof(connectionsForMap[user_id].floorInfo) === "undefined") continue;
+            console.log('\nReturn Message to ' + user_id + '(map) at ' + Date.now() + ':');
+            for (let tId in answer.tags) {
+              if (tId === 'n') continue;
+              var coord = coordConverter.convert(answer.tags[tId].pos, connectionsForMap[user_id].floorInfo,
+                { "length_x": "44", "length_y": "55" }); // to be done
+                answer.tags[tId].pos = coord; 
+            }
+            connectionsForMap[user_id].sendUTF(JSON.stringify(answer));
+          }
+
+          // save results in mongodb
+          MongoClient.connect(url, { useNewUrlParser: true }, function (err, db) {
+            if (err) throw err;
+            var dbo = db.db("smart_storage");
+            dbo.collection("result").insertOne(results, function (err, res) {
+              if (err) throw err;
+              console.log('db insert success');
+              db.close();
+            });
+          });
+
+        } else if (query.client_type === 'anchor') {
+          // json.timestamp = tms;
+          // console.log('\nMessage from ' + query.user_id + '(' + query.client_type + ') at ' + tms + ':');
+          // console.log(JSON.stringify(json.tags));
+
+          // for (let tag of json.tags) {
+          //   let tId = tag[0];
+          //   if (scaned_tags[tId] == undefined) { // scaned this tag for the first time
+          //     scaned_tags[tId] = {'timestamp': 0};
+          //   }
+          //   let this_ts = parseInt(json.timestamp / 1000)
+          //   if (scaned_tags[tId] == undefined ||
+          //       ( this_ts != (scaned_tags[tId]['timestamp']) &&
+          //         this_ts != (scaned_tags[tId]['timestamp'] + 1))) {
+          //     scaned_tags[tId] = {
+          //       'timestamp': this_ts,
+          //       'aIds': [],
+          //       'anchors': []
+          //     };
+          //   }
+          //   let aIndex = scaned_tags[tId]['aIds'].indexOf(json.aId);
+          //   if (aIndex == -1) {    
+          //     scaned_tags[tId]['aIds'].push(json.aId);
+          //     scaned_tags[tId]['anchors'].push({
+          //       'aId': json.aId,
+          //       'rssi': tag[1]
+          //     });
+          //   } else {
+          //     scaned_tags[tId]['anchors'][aIndex].rssi = tag[1];
+          //   }
+          // }
 
           // save anchors message in mongodb
           // MongoClient.connect(url, { useNewUrlParser: true }, function (err, db) {
@@ -135,119 +251,31 @@ wssServer.on('request', function (request) {
           //     db.close();
           //   });
           // });
-
-        } catch (e) {
-          console.log(e);
-        } finally { }
-
-      } else { }
-      
-      try {
-
-        /*
-        {
-          tags: {
-            "10001-00432": [
-              {"aId": "00001-00001", "rssi": -44},
-              {"aId": "00001-00002", "rssi": -53},
-              {"aId": "00001-00003", "rssi": -60}
-            ],
-            "10001-00433": [
-              {"aId": "00001-00001", "rssi": -46},
-              {"aId": "00001-00002", "rssi": -52}
-            ],
-          },
-          "timestamp": 1572850520
-        }
-        */
-
-        let results = {'n': 0};
-        console.log('scaned_tags: ' + JSON.stringify(scaned_tags));
-        for (let tId in scaned_tags) {
-          var tag = scaned_tags[tId];
-          // console.log('tag ' + tId + ': ' + JSON.stringify(tag));
-          if (tag.anchors.length >= 1) {
-            var sorted_anchors = JSON.parse(JSON.stringify(tag.anchors));
-            sorted_anchors.push({
-              'aId': '00001-00002',
-              'rssi': -53
-            });
-            sorted_anchors.push({
-              'aId': '00001-00003',
-              'rssi': -60
-            });
-            sorted_anchors.sort(keysort('rssi', true));
-            
-            var input = {
-              'anchors': sorted_anchors,
-              'timestamp':tag.timestamp
-            };
-            result = locateForTag(tId, input);
-            result.tId = tId;
-
-            if ('pos' in result) {
-              results[result.tId] = {
-                'pos': result.pos,
-                'DOP': result.DOP,
-                'weight': result.weight,
-                'timestamp': result.timestamp
-              };
-              results.n++;
-            }
-            
-          }
-        }
-
-        if (results.n == 0) {
-          return;
-        }
-
-        console.log('\nResults: ' + JSON.stringify(results));
         
-        var answer = JSON.parse(JSON.stringify(results));
-        for (let user_id in connectionsForMap) {
-          if (typeof(connectionsForMap[user_id].floorInfo) === "undefined") continue;
-          console.log('\nReturn Message to ' + user_id + '(map) at ' + Date.now() + ':');
-          for (let tId in answer) {
-            if (tId === 'n') continue;
-            var coord = coordConverter.convert(answer[tId].pos, connectionsForMap[user_id].floorInfo,
-              { "length_x": "44", "length_y": "55" }); // to be done
-            answer[tId].pos = coord; 
-          }
-          connectionsForMap[user_id].sendUTF(JSON.stringify(answer));
-        }
+        } else { }
 
-        // save results in mongodb
-        MongoClient.connect(url, { useNewUrlParser: true }, function (err, db) {
-          if (err) throw err;
-          var dbo = db.db("smart_storage");
-          dbo.collection("result").insertOne(results, function (err, res) {
-            if (err) throw err;
-            console.log('db insert success');
-            db.close();
-          });
-        });
+      } else if (message.type === 'binary') {
+        console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
+        connection.sendBytes(message.binaryData);
+      }
 
-      } catch (e) {
-        // only send error to anchor
-        if (connectionsForAnchor[query.user_id]) {
-          connectionsForAnchor[query.user_id].sendUTF('wrong message');
-          console.log('wrong message');
-        }
-        console.log(e);
-      } finally { }
-
-    }
-    else if (message.type === 'binary') {
-      console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
-      connection.sendBytes(message.binaryData);
-    }
+    } catch (e) {
+      // only send error to root
+      // if (connectionsForRoot[query.user_id]) {
+      //   connectionsForRoot[query.user_id].sendUTF('wrong message');
+      //   console.log('wrong message');
+      // }
+      console.log(e);
+    } finally { }
+    
   });
 
   connection.on('close', function (reasonCode, description) {
     console.log('\n' + new Date() + ' Peer ' + connection.remoteAddress + ' disconnected.');
     if (query.client_type === 'map') {
       delete connectionsForMap[query.user_id];
+    } else if (query.client_type === 'root') {
+      delete connectionsForRoot[query.user_id];
     } else if (query.client_type === 'anchor') {
       delete connectionsForAnchor[query.user_id];
     } else { }
@@ -260,14 +288,12 @@ wssServer.on('request', function (request) {
 
 function locateForTag(tId, input) {
   console.log('Locating for tag ' + tId + ' using parameters: ');
-  console.log(JSON.stringify(input) + '\n');
+  console.log(JSON.stringify(input));
 
   var result = {};
-
   if (!locationManager.locate(input, result)) {
     return result;
   }
-
   // console.log('Trilateration result: ' + JSON.stringify(result));
 
   return result;
