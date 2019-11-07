@@ -1,6 +1,7 @@
 var WebSocketServer = require('websocket').server;
 var http = require('http');
 var https = require('https');
+var validator = require('validator');
 
 var config = require('./config/config')
 var acoords = require('./data/coordinate').getAcoords;
