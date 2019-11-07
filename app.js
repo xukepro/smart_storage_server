@@ -88,6 +88,7 @@ wssServer.on('request', function (request) {
         // let tms = Date.now();
         if (!validator.isJSON(message.utf8Data)){
           console.log('message from ' + query.user_id + '(anchor) is not a json string')
+          return;
         }
         var json = JSON.parse(message.utf8Data);
         // console.log(JSON.stringify(json, null, 2));
