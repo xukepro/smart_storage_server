@@ -67,7 +67,7 @@ wssServer.on('request', function (request) {
   }
 
   var connection = request.accept('echo-protocol', request.origin);
-  console.log('\n' + new Date() + ' Connection accepted for User:' + query.user_id + ' of Client_Type:' + query.client_type + '.');
+  console.log('\n' + new Date() + ' Connection accepted for user:' + query.user_id + ' of type:' + query.client_type + ' from:' + connection.remoteAddress + '.');
 
   if (query.client_type === 'map') {
     connectionsForMap[query.user_id] = connection;
