@@ -85,14 +85,14 @@ wssServer.on('request', function (request) {
   connection.on('message', function (message) {
     try {
       if (message.type === 'utf8') {
-        // console.log('\nReceive Message from '+query.user_id+'('+query.client_type+') at '+Date.now()+':');
+        console.log('\nReceive Message from '+query.user_id+'('+query.client_type+') at '+Date.now()+':');
         // let tms = Date.now();
         if (!validator.isJSON(message.utf8Data)){
           console.log('message from ' + query.user_id + '(' + query.client_type + ')' + ' is not a json string')
           return;
         }
         var json = JSON.parse(message.utf8Data);
-        // console.log(JSON.stringify(json, null, 2));
+        console.log(JSON.stringify(json, null, 2));
 
         if (query.client_type === 'map') {
           connectionsForMap[query.user_id].floorInfo = json; // get floorInfo from webpage
