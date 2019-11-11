@@ -4,7 +4,6 @@ var https = require('https');
 var validator = require('validator');
 
 var config = require('./config/config')
-var acoords = require('./data/coordinate').getAcoords;
 
 var locationManager = require('./lib/locationmanager');
 var coordConverter = require('./lib/coordConverter');
@@ -13,30 +12,27 @@ var decoder = require('./lib/decoder');
 var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27017/";
 
-// let options = {
-//   key: config.sec.key,
-//   cert: config.sec.crt
-// };
-
-// var server = https.createServer(options, function (request, response) {
-//   console.log((new Date()) + ' Received request for ' + request.url);
-//   response.writeHead(404);
-//   response.end();
-// });
-// server.listen(config.https_port, function () {
-//   console.log((new Date()) + ' Server is listening on port ' + config.https_port);
-// });
-var server = http.createServer(function (request, response) {
-  console.log((new Date()) + ' Received request for ' + request.url);
+var http_server = http.createServer(function (request, response) {
+  console.log((new Date()) + ' HTTP Received request for ' + request.url);
   response.writeHead(404);
   response.end();
 });
-server.listen(config.http_port, function () {
-  console.log((new Date()) + ' Server is listening on port ' + config.http_port);
+http_server.listen(config.http_port, function () {
+  console.log((new Date()) + ' HTTP Server is listening on port ' + config.http_port);
+});
+
+let options = {key: config.sec.key, cert: config.sec.crt};
+var https_server = https.createServer(options, function (request, response) {
+  console.log((new Date()) + ' HTTPS Received request for ' + request.url);
+  response.writeHead(404);
+  response.end();
+});
+https_server.listen(config.https_port, function () {
+  console.log((new Date()) + ' HTTPS Server is listening on port ' + config.https_port);
 });
 
 var wssServer = new WebSocketServer({
-  httpServer: server,
+  httpServer: [http_server, https_server],
   // You should not use autoAcceptConnections for production
   // applications, as it defeats all standard cross-origin protection
   // facilities built into the protocol and the browser.  You should
