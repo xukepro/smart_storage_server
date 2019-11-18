@@ -141,6 +141,12 @@ wssServer.on('request', function (request) {
                 locateForTag(tId, input)
                   .then(function (result) {
                     if ('pos' in result) {
+                      result.pos = [
+                        Number(Number(result.pos[0]).toFixed(6)),
+                        Number(Number(result.pos[1]).toFixed(6))
+                      ];
+                      result.DOP = Number(Number(result.DOP).toFixed(6));
+                      result.weight = Number(Number(result.weight).toFixed(3));
                       results.tags[tId] = result;
                       results.n++;
                     }
