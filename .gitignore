@@ -4,5 +4,6 @@ node_modules
 package-lock.json
 .DS_Store
 .vscode/*
-ecosystem.config.js
+logs
+pm2.json
 ouput.txt
