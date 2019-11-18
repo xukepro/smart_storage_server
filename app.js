@@ -105,24 +105,24 @@ wssServer.on('request', function (request) {
           console.log('floorInfo: ' + JSON.stringify(json));
 
         } else if (query.client_type === 'root') {
-          json = {
-            'anchors': {
-              '904E9140F930': [
-                '23FDA50693A4E24FB1AFCFC6EB0764782527110001',
-                '27FDA50693A4E24FB1AFCFC6EB0764782527110002',
-                '30FDA50693A4E24FB1AFCFC6EB0764782527110003'
-              ],
-              '904E9140F931': [
-                '28FDA50693A4E24FB1AFCFC6EB0764782527110001',
-                '21FDA50693A4E24FB1AFCFC6EB0764782527110002'
-              ],
-              '904E9140F932': [
-                '2FFDA50693A4E24FB1AFCFC6EB0764782527110001',
-                '2DFDA50693A4E24FB1AFCFC6EB0764782527110002'
-              ],
-            },
-            'timestamp': Date.now()
-          }
+          // json = {
+          //   'anchors': {
+          //     '904E9140F930': [
+          //       '23FDA50693A4E24FB1AFCFC6EB0764782527110001',
+          //       '27FDA50693A4E24FB1AFCFC6EB0764782527110002',
+          //       '30FDA50693A4E24FB1AFCFC6EB0764782527110003'
+          //     ],
+          //     '904E9140F931': [
+          //       '28FDA50693A4E24FB1AFCFC6EB0764782527110001',
+          //       '21FDA50693A4E24FB1AFCFC6EB0764782527110002'
+          //     ],
+          //     '904E9140F932': [
+          //       '2FFDA50693A4E24FB1AFCFC6EB0764782527110001',
+          //       '2DFDA50693A4E24FB1AFCFC6EB0764782527110002'
+          //     ],
+          //   },
+          //   'timestamp': Date.now()
+          // }
           if (!('anchors' in json) || !('timestamp' in json)) {
             console.log('wrong data from ' + query.user_id + '(root)');
             return;
