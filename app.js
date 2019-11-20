@@ -4,14 +4,10 @@ var https = require('https');
 var validator = require('validator');
 
 var config = require('./config')
-
 var locationManager = require('./lib/locationmanager');
 var coordConverter = require('./lib/coordConverter');
 var decoder = require('./lib/decoder');
-
-var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb://localhost:27017/";
-
+var MongoClient = require('./lib/mongoClient')
 var RedisClient = require('./lib/redisClient')
 
 var http_server = http.createServer(function (request, response) {
@@ -130,6 +126,15 @@ wssServer.on('request', function (request) {
           var tidied_json = tidyRootJSON(json);
           console.log('tidied_json: ' + JSON.stringify(tidied_json));
 
+          // save request in mongodb
+          MongoClient.insertRequest(json)
+            .then(function (res) {
+              console.log('Mongo insert success');
+            })
+            .catch(function (err) {
+              throw err;
+            });
+
           let results = { 'n': 0, 'tags': {} };
           var actions = [];
           for (let tId in tidied_json.tags) {
@@ -156,6 +161,7 @@ wssServer.on('request', function (request) {
               );
             }
           }
+
           Promise.all(actions).then(function () {
             if (results.n == 0) return;
             var answer = JSON.parse(JSON.stringify(results));
@@ -186,15 +192,13 @@ wssServer.on('request', function (request) {
             }
 
             // save results in mongodb
-            MongoClient.connect(url, { useNewUrlParser: true }, function (c_err, db) {
-              if (c_err) throw c_err;
-              var dbo = db.db("smart_storage");
-              dbo.collection("result").insertOne(results, function (i_err, res) {
-                if (i_err) throw i_err;
+            MongoClient.insertResults(results)
+              .then(function (res) {
                 console.log('Mongo insert success');
-                db.close();
+              })
+              .catch(function (err) {
+                throw err;
               });
-            });
           });
 
         } else if (query.client_type === 'anchor') {
@@ -278,10 +282,9 @@ function tidyRootJSON(json) {
   var tidied_json = { 'tags': {}, 'timestamp': json.timestamp };
   for (let aId in json.anchors) {
     for (let data of json.anchors[aId]) {
-      // if (data.length != 42) {
-      //   continue;
-      // }
-      var tag = decoder.tagData(data);
+      if (data.length != 42) continue;
+      let tag = decoder.tagData(data);
+      if (tag.rssi >= 0 || tag.rssi < -128) continue;
       if (!(tag.tId in tidied_json.tags)) {
         tidied_json.tags[tag.tId] = [];
       }

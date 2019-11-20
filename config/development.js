@@ -2,8 +2,15 @@ var config = {
   'http_port': '3004',
   'https_port': '3005',
   'redis': {
-    'redis_port': '6379',
-    'redis_host': '127.0.0.1'
+    'port': '6379',
+    'host': '127.0.0.1'
+  },
+  'mongodb': {
+    'port': '27017',
+    'host': '127.0.0.1',
+    'database': 'smart_storage',
+    'request_collection': 'request',
+    'results_collection': 'results'
   }
 }
 
