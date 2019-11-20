@@ -101,24 +101,24 @@ wssServer.on('request', function (request) {
           console.log('floorInfo: ' + JSON.stringify(json));
 
         } else if (query.client_type === 'root') {
-          // json = {
-          //   'anchors': {
-          //     '904E9140F930': [
-          //       '23FDA50693A4E24FB1AFCFC6EB0764782527110001',
-          //       '27FDA50693A4E24FB1AFCFC6EB0764782527110002',
-          //       '30FDA50693A4E24FB1AFCFC6EB0764782527110003'
-          //     ],
-          //     '904E9140F931': [
-          //       '28FDA50693A4E24FB1AFCFC6EB0764782527110001',
-          //       '21FDA50693A4E24FB1AFCFC6EB0764782527110002'
-          //     ],
-          //     '904E9140F932': [
-          //       '2FFDA50693A4E24FB1AFCFC6EB0764782527110001',
-          //       '2DFDA50693A4E24FB1AFCFC6EB0764782527110002'
-          //     ],
-          //   },
-          //   'timestamp': Date.now()
-          // }
+          json = {
+            'anchors': {
+              '904E9140F916': [
+                '23FDA50693A4E24FB1AFCFC6EB0764782527110001',
+                '27FDA50693A4E24FB1AFCFC6EB0764782527110002',
+                '30FDA50693A4E24FB1AFCFC6EB0764782527110003'
+              ],
+              '904E9140F917': [
+                '28FDA50693A4E24FB1AFCFC6EB0764782527110001',
+                '21FDA50693A4E24FB1AFCFC6EB0764782527110002'
+              ],
+              '904E9140F918': [
+                '2FFDA50693A4E24FB1AFCFC6EB0764782527110001',
+                '2DFDA50693A4E24FB1AFCFC6EB0764782527110002'
+              ],
+            },
+            'timestamp': Date.now()
+          }
           if (!('anchors' in json) || !('timestamp' in json)) {
             console.log('wrong data from ' + query.user_id + '(root)');
             return;
@@ -167,22 +167,7 @@ wssServer.on('request', function (request) {
             var answer = JSON.parse(JSON.stringify(results));
             console.log('\nAnswer: ' + JSON.stringify(results));
 
-            // return results to map
-            for (let user_id in connectionsForMap) {
-              if (typeof (connectionsForMap[user_id].floorInfo) === "undefined") continue;
-              console.log('\nReturn Message to ' + user_id + '(map) at ' + Date.now() + ':');
-              for (let tId in answer.tags) {
-                var coord = coordConverter.convert(
-                  answer.tags[tId].pos,
-                  connectionsForMap[user_id].floorInfo,
-                  { "length_x": "44", "length_y": "55" }
-                ); // TO BE DONE
-                answer.tags[tId].pos = coord;
-              }
-              connectionsForMap[user_id].sendUTF(JSON.stringify(answer));
-            }
-
-            // save results in mongodb
+            // save results in redis
             RedisClient.insertResults(results)
               .then(function () {
                 console.log('Redis insert success');
@@ -199,6 +184,21 @@ wssServer.on('request', function (request) {
               .catch(function (err) {
                 throw err;
               });
+
+            // return results to map
+            for (let user_id in connectionsForMap) {
+              if (typeof (connectionsForMap[user_id].floorInfo) === "undefined") continue;
+              console.log('\nReturn Message to ' + user_id + '(map) at ' + Date.now() + ':');
+              for (let tId in answer.tags) {
+                var coord = coordConverter.convert(
+                  answer.tags[tId].pos,
+                  connectionsForMap[user_id].floorInfo,
+                  { "length_x": "44", "length_y": "55" }
+                ); // TO BE DONE
+                answer.tags[tId].pos = coord;
+              }
+              connectionsForMap[user_id].sendUTF(JSON.stringify(answer));
+            }
           });
 
         } else if (query.client_type === 'anchor') {
@@ -303,7 +303,7 @@ function locateForTag(tId, input) {
       .then(function (previous) {
         input.previous = previous;
         console.log('Locating for tag ' + tId + ' using parameters: ');
-        console.log(JSON.stringify(input));
+        // console.log(JSON.stringify(input));
         var result = {};
         if (locationManager.locate(input, result)) {
           // console.log('Trilateration result: ' + JSON.stringify(result));
