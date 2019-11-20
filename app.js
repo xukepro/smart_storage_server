@@ -167,15 +167,6 @@ wssServer.on('request', function (request) {
             var answer = JSON.parse(JSON.stringify(results));
             console.log('\nAnswer: ' + JSON.stringify(results));
 
-            // save answer in mongodb
-            RedisClient.insertAnswerToRedis(answer)
-              .then(function () {
-                console.log('Redis insert success');
-              })
-              .catch(function (err) {
-                throw err;
-              });
-
             // return results to map
             for (let user_id in connectionsForMap) {
               if (typeof (connectionsForMap[user_id].floorInfo) === "undefined") continue;
@@ -190,6 +181,15 @@ wssServer.on('request', function (request) {
               }
               connectionsForMap[user_id].sendUTF(JSON.stringify(answer));
             }
+
+            // save results in mongodb
+            RedisClient.insertResults(results)
+              .then(function () {
+                console.log('Redis insert success');
+              })
+              .catch(function (err) {
+                throw err;
+              });
 
             // save results in mongodb
             MongoClient.insertResults(results)
@@ -299,7 +299,7 @@ function tidyRootJSON(json) {
 
 function locateForTag(tId, input) {
   return new Promise(function (resolve, reject) {
-    RedisClient.previousFromRedis(tId)
+    RedisClient.getPrevious(tId)
       .then(function (previous) {
         input.previous = previous;
         console.log('Locating for tag ' + tId + ' using parameters: ');
