@@ -164,8 +164,6 @@ wssServer.on('request', function (request) {
 
           Promise.all(actions).then(function () {
             if (results.n == 0) return;
-            var answer = JSON.parse(JSON.stringify(results));
-            console.log('\nAnswer: ' + JSON.stringify(results));
 
             // save results in redis
             RedisClient.insertResults(results)
@@ -176,6 +174,7 @@ wssServer.on('request', function (request) {
                 throw err;
               });
 
+            results.task = '1';
             // save results in mongodb
             MongoClient.insertResults(results)
               .then(function (res) {
@@ -185,6 +184,8 @@ wssServer.on('request', function (request) {
                 throw err;
               });
 
+            var answer = JSON.parse(JSON.stringify(results));
+            console.log('\nAnswer: ' + JSON.stringify(results));
             // return results to map
             for (let user_id in connectionsForMap) {
               if (typeof (connectionsForMap[user_id].floorInfo) === "undefined") continue;
