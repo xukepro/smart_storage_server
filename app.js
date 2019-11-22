@@ -174,7 +174,7 @@ wssServer.on('request', function (request) {
                 throw err;
               });
 
-            results.task = '1';
+            results.task = '4';
             // save results in mongodb
             MongoClient.insertResults(results)
               .then(function (res) {
