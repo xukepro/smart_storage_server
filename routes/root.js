@@ -40,7 +40,7 @@ function messageHandler(message) {
   } */
 
   if (!json.hasOwnProperty('data') || !json.hasOwnProperty('timestamp')) {
-    console.log('wrong data from ' + query.user_id + '(root)');
+    console.log('wrong data');
     return;
   }
   // var tidied_json = utils.tidyRootJSON(json);
@@ -54,17 +54,17 @@ function messageHandler(message) {
       timestamp: json.timestamp/1000
     }
   }
-  decodeJson = decode(json);
+  let decodeJson = decode(json);
   console.log(decodeJson);
 
-  redisObj = [decodeJson.timestamp, JSON.stringify({ aId: decodeJson.aId, tags: decodeJson.tags })];
+  let redisObj = [decodeJson.timestamp, JSON.stringify({ aId: decodeJson.aId, tags: decodeJson.tags })];
 
   //add tidied_json to redis sorted set
   RedisClient.zadd(redisKey, redisObj, function (err, response) {
     if (err) {
       console.log(err);
       return;
-    };
+    }
     console.log('added ' + response + ' items to redis');
   });
 

@@ -210,8 +210,6 @@ function locateForTag(tId, input) {
         input.previous = previous;
         console.log('Locating for tag ' + tId + ' using parameters: ');
         console.log(JSON.stringify(input));
-        console.log('----')
-        test();
         var result = {};
         if (locationManager.locate(input, result)) {
           // console.log('Trilateration result: ' + JSON.stringify(result));
@@ -224,8 +222,4 @@ function locateForTag(tId, input) {
         reject(err);
       });
   });
-}
-
-test = () => {
-  console.log('test');
 }

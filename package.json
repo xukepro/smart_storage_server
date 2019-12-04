@@ -13,7 +13,9 @@
     "validator": "^12.0.0",
     "websocket": "^1.0.28"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint": "^6.7.2"
+  },
   "scripts": {
     "test": "make test",
     "start": "node app.js",
