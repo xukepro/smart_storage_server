@@ -18,9 +18,10 @@ module.exports = function init(request, wsConnection) {
 };
 
 function messageHandler(message) {
+  console.log(message);
   let json = JSON.parse(message.utf8Data);
 /*   json = {
-    'anchors': {
+    'data': {
       '904E9140F916': [
         '23FDA50693A4E24FB1AFCFC6EB0764782527110001',
         '27FDA50693A4E24FB1AFCFC6EB0764782527110002',
@@ -37,7 +38,8 @@ function messageHandler(message) {
     },
     'timestamp': Date.now()
   } */
-  if (!('anchors' in json) || !('timestamp' in json)) {
+
+  if (!json.hasOwnProperty('data') || !json.hasOwnProperty('timestamp')) {
     console.log('wrong data from ' + query.user_id + '(root)');
     return;
   }
@@ -45,19 +47,17 @@ function messageHandler(message) {
   // console.log('tidied_json: ' + JSON.stringify(tidied_json));
 
   const decode = (json) => {
-    for (let k in json.anchors) {
-      return {
-        aId: k,
-        tags: json.anchors[k].map((tId) => decoder.tagData(tId)),
-        timestamp: json.timestamp
-      }
+    let k = Object.keys(json.data)[0];
+    return {
+      aId: k,
+      tags: json.data[k].map((tId) => decoder.tagData(tId)),
+      timestamp: json.timestamp/1000
     }
   }
   decodeJson = decode(json);
-  // console.log(decodeJson);
+  console.log(decodeJson);
 
   redisObj = [decodeJson.timestamp, JSON.stringify({ aId: decodeJson.aId, tags: decodeJson.tags })];
-  // console.log(redisObj);
 
   //add tidied_json to redis sorted set
   RedisClient.zadd(redisKey, redisObj, function (err, response) {

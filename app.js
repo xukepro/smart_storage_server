@@ -2,12 +2,15 @@ var WebSocketServer = require('websocket').server;
 var WebSocketRouter = require('websocket').router;
 var http = require('http');
 var https = require('https');
+var locationManager = require('./lib/locationManager');
 
 var keysort = require('./lib/utils/index').keysort;
 var config = require('./config');
 var wsConnection = require('./lib/wsConnection');
 var RedisClient = require('./lib/redisClient');
+var MongoClient = require('./lib/mongoClient');
 var redisKey = config.redis.sortedSet.key;
+var offset = config.redis.sortedSet.offset;
 var loadTimeInterval = config.redis.sortedSet.loadTimeInterval;
 var deleteTimeInterval = config.redis.sortedSet.deleteTimeInterval;
 
@@ -51,8 +54,8 @@ router.mount('/map', 'echo-protocol', request => require('./routes/map')(request
 const cyclicLoad = (loadTimeInterval) => {
 
   let time = Date.now() / 1000;
-  let timeRange = [time - loadTimeInterval / 1000 - 1, time - 1];
-  // console.log(timeRange, "load...");
+  let timeRange = [time - loadTimeInterval / 1000 - offset/1000, time - offset/1000];
+  console.log(timeRange, "load...");
 
   return RedisClient.zrangebyscore(redisKey, ...timeRange, 'WITHSCORES', function (err, response) {
     if (err) {
@@ -68,7 +71,7 @@ const cyclicLoad = (loadTimeInterval) => {
     let i = 0,
       res,
       tidied_json = {
-        time: time - 1.5,
+        timestamp: time - offset/1000,
         tags: {}
       };
 
@@ -83,18 +86,18 @@ const cyclicLoad = (loadTimeInterval) => {
       for (let item of res.tags) {
 
         if (!tidied_json.tags.hasOwnProperty(item.tId)) {
-          tidied_json.tags[item.tId] = [{ aId: res.aId, rssi: item.rssi }];
+          tidied_json.tags[item.tId] = [[res.aId, item.rssi]];
         } else {
           let len = tidied_json.tags[item.tId].length;
           //将新数据加入有序数组
-          if (item.rssi > tidied_json.tags[item.tId][0].rssi) {
-            tidied_json.tags[item.tId].unshift({ aId: res.aId, rssi: item.rssi });
-          } else if (item.rssi < tidied_json.tags[item.tId][len - 1].rssi) {
-            tidied_json.tags[item.tId].push({ aId: res.aId, rssi: item.rssi });
+          if (item.rssi > tidied_json.tags[item.tId][0][1]) {
+            tidied_json.tags[item.tId].unshift([res.aId, item.rssi]);
+          } else if (item.rssi < tidied_json.tags[item.tId][len - 1][1]) {
+            tidied_json.tags[item.tId].push([res.aId, item.rssi]);
           } else {
             for (let j = 0; j < len - 1; j++) {
-              if (item.rssi < tidied_json.tags[item.tId][j].rssi && item.rssi > tidied_json.tags[item.tId][j + 1].rssi) {
-                tidied_json.tags[item.tId].splice(j + 1, 0, { aId: res.aId, rssi: item.rssi });
+              if (item.rssi < tidied_json.tags[item.tId][j][1] && item.rssi > tidied_json.tags[item.tId][j + 1][1]) {
+                tidied_json.tags[item.tId].splice(j + 1, 0, [res.aId, item.rssi]);
               }
             }
           }
@@ -110,11 +113,12 @@ const cyclicLoad = (loadTimeInterval) => {
     for (let tId in tidied_json.tags) {
       var anchors = tidied_json.tags[tId];
       if (anchors.length >= 3) {
-        anchors.sort(keysort('rssi', true));
-        var input = { 'anchors': anchors, 'timestamp': tidied_json.timestamp };
+        // anchors.sort(keysort('rssi', true));
+        var input = { 'data': anchors, 'timestamp': tidied_json.timestamp};
         actions.push(
           locateForTag(tId, input)
             .then(function (result) {
+              console.log(result);
               if ('pos' in result) {
                 result.pos = [
                   Number(Number(result.pos[0]).toFixed(6)),
@@ -124,6 +128,7 @@ const cyclicLoad = (loadTimeInterval) => {
                 result.weight = Number(Number(result.weight).toFixed(3));
                 results.tags[tId] = result;
                 results.n++;
+                console.log(results);
               }
             })
             .catch(function (err) {
@@ -198,12 +203,15 @@ setInterval(function () {
 }, deleteTimeInterval);
 
 function locateForTag(tId, input) {
+  console.log(input);
   return new Promise(function (resolve, reject) {
     RedisClient.getPrevious(tId)
       .then(function (previous) {
         input.previous = previous;
         console.log('Locating for tag ' + tId + ' using parameters: ');
-        // console.log(JSON.stringify(input));
+        console.log(JSON.stringify(input));
+        console.log('----')
+        test();
         var result = {};
         if (locationManager.locate(input, result)) {
           // console.log('Trilateration result: ' + JSON.stringify(result));
@@ -216,4 +224,8 @@ function locateForTag(tId, input) {
         reject(err);
       });
   });
+}
+
+test = () => {
+  console.log('test');
 }

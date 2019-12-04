@@ -5,8 +5,9 @@ var config = {
     'host': '127.0.0.1',
     'sortedSet': {
       'key': 'sorted-anchors',
-      'loadTimeInterval': 5000,
-      'deleteTimeInterval': 60000
+      'loadTimeInterval': 1000,
+      'deleteTimeInterval': 60000,
+      'offset': 3000
     },
   },
   'mongodb': {
