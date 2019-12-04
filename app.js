@@ -11,6 +11,8 @@ var redisKey = config.redis.sortedSet.key;
 var loadTimeInterval = config.redis.sortedSet.loadTimeInterval;
 var deleteTimeInterval = config.redis.sortedSet.deleteTimeInterval;
 
+var httpServers = [];
+
 var http_server = http.createServer(function (request, response) {
   console.log((new Date()) + ' HTTP Received request for ' + request.url);
   response.writeHead(404);
@@ -19,9 +21,9 @@ var http_server = http.createServer(function (request, response) {
 http_server.listen(config.http_port, function () {
   console.log((new Date()) + ' HTTP Server is listening on port ' + config.http_port);
 });
+httpServers.push(http_server);
 
-var wssServer = null;
-if ('sec' in config) {
+if (('https_port' in config) && ('sec' in config)) {
   let options = { key: config.sec.key, cert: config.sec.crt };
   var https_server = https.createServer(options, function (request, response) {
     console.log((new Date()) + ' HTTPS Received request for ' + request.url);
@@ -31,22 +33,13 @@ if ('sec' in config) {
   https_server.listen(config.https_port, function () {
     console.log((new Date()) + ' HTTPS Server is listening on port ' + config.https_port);
   });
-
-  wssServer = new WebSocketServer({
-    httpServer: [http_server, https_server],
-    // You should not use autoAcceptConnections for production
-    // applications, as it defeats all standard cross-origin protection
-    // facilities built into the protocol and the browser.  You should
-    // *always* verify the connection's origin and decide whether or not
-    // to accept it.
-    autoAcceptConnections: false
-  });
-} else {
-  wssServer = new WebSocketServer({
-    httpServer: http_server,
-    autoAcceptConnections: false
-  });
+  httpServers.push(https_server);
 }
+
+var wssServer = new WebSocketServer({
+  httpServer: httpServers,
+  autoAcceptConnections: false
+});
 
 var router = new WebSocketRouter();
 router.attachServer(wssServer);
