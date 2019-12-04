@@ -9,7 +9,13 @@ var config = {
   },
   'redis': {
     'redis_port': '6379',
-    'redis_host': '127.0.0.1'
+    'redis_host': '127.0.0.1',
+    'sortedSet': {
+      'key': 'sorted-anchors',
+      'loadTimeInterval': 1000,
+      'deleteTimeInterval': 60000,
+      'offset': 3000
+    },
   },
   'mongodb': {
     'port': '27017',
