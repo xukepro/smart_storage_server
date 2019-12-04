@@ -21,25 +21,16 @@ function messageHandler(message) {
   console.log(message);
   let json = JSON.parse(message.utf8Data);
 /*   json = {
-    'data': {
-      '904E9140F916': [
+      'aId': '904E9140F916':
+      'tags': [
         '23FDA50693A4E24FB1AFCFC6EB0764782527110001',
         '27FDA50693A4E24FB1AFCFC6EB0764782527110002',
         '30FDA50693A4E24FB1AFCFC6EB0764782527110003'
       ],
-      '904E9140F917': [
-        '28FDA50693A4E24FB1AFCFC6EB0764782527110001',
-        '21FDA50693A4E24FB1AFCFC6EB0764782527110002'
-      ],
-      '904E9140F918': [
-        '2FFDA50693A4E24FB1AFCFC6EB0764782527110001',
-        '2DFDA50693A4E24FB1AFCFC6EB0764782527110002'
-      ],
-    },
     'timestamp': Date.now()
   } */
 
-  if (!json.hasOwnProperty('data') || !json.hasOwnProperty('timestamp')) {
+  if (!json.hasOwnProperty('aId') || !json.hasOwnProperty('tags')) {
     console.log('wrong data');
     return;
   }
@@ -47,10 +38,10 @@ function messageHandler(message) {
   // console.log('tidied_json: ' + JSON.stringify(tidied_json));
 
   const decode = (json) => {
-    let k = Object.keys(json.data)[0];
+    let k = json.aId;
     return {
       aId: k,
-      tags: json.data[k].map((tId) => decoder.tagData(tId)),
+      tags: json.tags.map((tId) => decoder.tagData(tId)),
       timestamp: json.timestamp/1000
     }
   }
