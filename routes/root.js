@@ -19,15 +19,15 @@ module.exports = function init(request, wsConnection) {
 function messageHandler(message) {
   log.debug('handling message: ' + JSON.stringify(message));
   let json = JSON.parse(message.utf8Data);
-   json = {
-      'aId': '904E9140F916',
-      'tags': [
-        '23FDA50693A4E24FB1AFCFC6EB0764782527110001',
-        '27FDA50693A4E24FB1AFCFC6EB0764782527110002',
-        '30FDA50693A4E24FB1AFCFC6EB0764782527110003'
-      ],
-    'timestamp': Date.now()
-  }
+  //  json = {
+  //     'aId': '904E9140F916',
+  //     'tags': [
+  //       '23FDA50693A4E24FB1AFCFC6EB0764782527110001',
+  //       '27FDA50693A4E24FB1AFCFC6EB0764782527110002',
+  //       '30FDA50693A4E24FB1AFCFC6EB0764782527110003'
+  //     ],
+  //   'timestamp': Date.now()
+  // }
 
   if (!json.hasOwnProperty('aId') || !json.hasOwnProperty('tags')) {
     log.error('wrong message data');
