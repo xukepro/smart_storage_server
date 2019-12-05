@@ -6,6 +6,8 @@ var locationManager = require('./lib/locationManager');
 
 var keysort = require('./lib/utils/index').keysort;
 var config = require('./config');
+var log4js = require('log4js');
+log4js.configure(config.log4js);
 var wsConnection = require('./lib/wsConnection');
 var RedisClient = require('./lib/redisClient');
 var MongoClient = require('./lib/mongoClient');
@@ -14,27 +16,31 @@ var offset = config.redis.sortedSet.offset;
 var loadTimeInterval = config.redis.sortedSet.loadTimeInterval;
 var deleteTimeInterval = config.redis.sortedSet.deleteTimeInterval;
 
+var logger = log4js.getLogger('startup');
+
+var log = log4js.getLogger('cycLoad');
+
 var httpServers = [];
 
 var http_server = http.createServer(function (request, response) {
-  console.log((new Date()) + ' HTTP Received request for ' + request.url);
+  logger.info('HTTP Received request for ' + request.url);
   response.writeHead(404);
   response.end();
 });
 http_server.listen(config.http_port, function () {
-  console.log((new Date()) + ' HTTP Server is listening on port ' + config.http_port);
+  logger.info('HTTP Server is listening on port ' + config.http_port);
 });
 httpServers.push(http_server);
 
 if (('https_port' in config) && ('sec' in config)) {
   let options = { key: config.sec.key, cert: config.sec.crt };
   var https_server = https.createServer(options, function (request, response) {
-    console.log((new Date()) + ' HTTPS Received request for ' + request.url);
+    logger.info('HTTPS Received request for ' + request.url);
     response.writeHead(404);
     response.end();
   });
   https_server.listen(config.https_port, function () {
-    console.log((new Date()) + ' HTTPS Server is listening on port ' + config.https_port);
+    logger.info('HTTPS Server is listening on port ' + config.https_port);
   });
   httpServers.push(https_server);
 }
@@ -55,18 +61,18 @@ const cyclicLoad = (loadTimeInterval) => {
 
   let time = Date.now() / 1000;
   let timeRange = [time - loadTimeInterval / 1000 - offset/1000, time - offset/1000];
-  console.log(timeRange, "load...");
+  log.trace(timeRange, "load...");
 
   return RedisClient.zrangebyscore(redisKey, ...timeRange, 'WITHSCORES', function (err, response) {
     if (err) {
-      console.log(err);
+      log.error(err);
       return;
     }
     if (response.length === 0) {
-      console.log((new Date).toLocaleString(), ': load 0 item');
+      log.trace((new Date).toLocaleString(), ': load 0 item');
       return;
     }
-    console.log((new Date).toLocaleString(), 'load data: ', response);
+    log.trace((new Date).toLocaleString(), 'load data: ', response);
 
     let i = 0,
       res,
@@ -79,7 +85,7 @@ const cyclicLoad = (loadTimeInterval) => {
       try {
         res = JSON.parse(response[i]);
       } catch (err) {
-        console.log(err);
+        log.error(err);
         return;
       }
 
@@ -106,7 +112,7 @@ const cyclicLoad = (loadTimeInterval) => {
       }
       i = i + 2;
     }
-    console.log(JSON.stringify(tidied_json, 0, 2));
+    log.debug(JSON.stringify(tidied_json, 0, 2));
 
     let results = { 'n': 0, 'tags': {} };
     var actions = [];
@@ -118,7 +124,6 @@ const cyclicLoad = (loadTimeInterval) => {
         actions.push(
           locateForTag(tId, input)
             .then(function (result) {
-              console.log(result);
               if ('pos' in result) {
                 result.pos = [
                   Number(Number(result.pos[0]).toFixed(6)),
@@ -128,10 +133,11 @@ const cyclicLoad = (loadTimeInterval) => {
                 result.weight = Number(Number(result.weight).toFixed(3));
                 results.tags[tId] = result;
                 results.n++;
-                console.log(results);
+                log.debug(results);
               }
             })
             .catch(function (err) {
+              log.error(err);
             })
         );
       }
@@ -143,7 +149,7 @@ const cyclicLoad = (loadTimeInterval) => {
       // save results in redis
       RedisClient.insertResults(results)
         .then(function () {
-          console.log('Redis insert success');
+          log.trace('Redis insert success');
         })
         .catch(function (err) {
           throw err;
@@ -153,7 +159,7 @@ const cyclicLoad = (loadTimeInterval) => {
       // save results in mongodb
       MongoClient.insertResults(results)
         .then(function (res) {
-          console.log('Mongo insert success');
+          log.trace('Mongo insert success');
         })
         .catch(function (err) {
           throw err;
@@ -184,13 +190,12 @@ const cyclicDelete = (deleteTimeInterval) => {
 
   let time = Date.now() / 1000;
   let timeRange = [0, time - deleteTimeInterval / 1000];
-  // console.log(timeRange, "delete...");
 
   return RedisClient.zremrangebyscore(redisKey, ...timeRange, function (err, response) {
     if (err) {
-      console.log(err);
+      log.error(err);
     }
-    console.log((new Date).toLocaleString(), ': delete ' + response + ' items');
+    log.trace((new Date).toLocaleString(), ': delete ' + response + ' items');
   });
 };
 
@@ -203,16 +208,14 @@ setInterval(function () {
 }, deleteTimeInterval);
 
 function locateForTag(tId, input) {
-  console.log(input);
   return new Promise(function (resolve, reject) {
     RedisClient.getPrevious(tId)
       .then(function (previous) {
         input.previous = previous;
-        console.log('Locating for tag ' + tId + ' using parameters: ');
-        console.log(JSON.stringify(input));
+        log.debug('Locating for tag ' + tId + ' using parameters: ');
+        log.debug(JSON.stringify(input));
         var result = {};
         if (locationManager.locate(input, result)) {
-          // console.log('Trilateration result: ' + JSON.stringify(result));
           resolve(result);
         } else {
           reject(result);

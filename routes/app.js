@@ -4,6 +4,8 @@ var stepManager = require('../lib/stepManager');
 var locationManager = require('../lib/locationManager');
 var Kalman = require('./lib/kalmanFilter');
 
+var log = require('log4js').getLogger('/app');
+
 module.exports = function init(request, wsConnection) {
   wsConnection.init(request, 'app', 'utf8', function (message) {
     try {
@@ -21,7 +23,7 @@ var kalmanFilterForApp = {}; // kalmanFilter for different users
 var totalDistanceForApp = {};
 
 function messageHandler(message, uId) {
-  let json = JSON.parse(message.utf8Data);
+  let input = JSON.parse(message.utf8Data);
 
   var result = {};
 
@@ -68,14 +70,14 @@ function stepForUser(uId, input) {
     var result = {};
     if (loss > 2) {
       initUserKF(uId);
-      console.log('PDR update for user ' + uId + ' using parameters: ');
-      console.log(JSON.stringify(input));
+      log.debug('PDR update for user ' + uId + ' using parameters: ');
+      log.debug(JSON.stringify(input));
       if (!stepManager.PDR(input, result)) {
         return {};
       }
     } else {
-      console.log('Fusion update for user ' + uId + ' using parameters: ');
-      console.log(JSON.stringify(input));
+      log.debug('Fusion update for user ' + uId + ' using parameters: ');
+      log.debug(JSON.stringify(input));
       if (!stepManager.fusion(userKF(uId), input, result)) {
         return {};
       }
@@ -107,8 +109,8 @@ function locateForUser(uId, input) {
   RedisClient.getPrevious(uId)
   .then(function (previous) {
     input.previous = previous;
-    console.log('Locating for user ' + uId + ' using parameters: ');
-    // console.log(JSON.stringify(input));
+    log.debug('Locating for user ' + uId + ' using parameters: ');
+    log.debug(JSON.stringify(input));
     var result = {};
     if (!locationManager.locate(input, result)) {
       return {};
