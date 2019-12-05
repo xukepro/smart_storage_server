@@ -61,7 +61,6 @@ const cyclicLoad = (loadTimeInterval) => {
 
   let time = Date.now() / 1000;
   let timeRange = [time - loadTimeInterval / 1000 - offset/1000, time - offset/1000];
-  log.trace(timeRange, "load...");
 
   return RedisClient.zrangebyscore(redisKey, ...timeRange, 'WITHSCORES', function (err, response) {
     if (err) {
@@ -69,10 +68,10 @@ const cyclicLoad = (loadTimeInterval) => {
       return;
     }
     if (response.length === 0) {
-      log.trace((new Date).toLocaleString(), ': load 0 item');
+      log.trace('load 0 item');
       return;
     }
-    log.trace((new Date).toLocaleString(), 'load data: ', response);
+    log.trace('load data: ', response);
 
     let i = 0,
       res,
@@ -108,7 +107,6 @@ const cyclicLoad = (loadTimeInterval) => {
             }
           }
         }
-        // console.log(i + '---------------:' + JSON.stringify(tidied_json.tags));
       }
       i = i + 2;
     }
@@ -195,7 +193,7 @@ const cyclicDelete = (deleteTimeInterval) => {
     if (err) {
       log.error(err);
     }
-    log.trace((new Date).toLocaleString(), ': delete ' + response + ' items');
+    log.trace('delete ' + response + ' items');
   });
 };
 

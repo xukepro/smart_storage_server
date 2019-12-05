@@ -39,7 +39,7 @@ var config = {
       },
     },
     categories: {
-      default: { appenders: ['console', 'out'], level: 'INFO' },
+      default: { appenders: ['console'], level: 'INFO' },
       '/app': { appenders: ['console'], level: 'INFO' },
       '/root': { appenders: ['console'], level: 'INFO' },
       '/map': { appenders: ['console'], level: 'INFO' },
