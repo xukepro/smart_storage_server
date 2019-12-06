@@ -15,6 +15,8 @@ var redisKey = config.redis.sortedSet.key;
 var offset = config.redis.sortedSet.offset;
 var loadTimeInterval = config.redis.sortedSet.loadTimeInterval;
 var deleteTimeInterval = config.redis.sortedSet.deleteTimeInterval;
+var Evaluator = require('./lib/utils/evaluator');
+var evaluator = new Evaluator('evaluate.txt');
 
 var logger = log4js.getLogger('startup');
 
@@ -59,9 +61,12 @@ router.mount('/map', 'echo-protocol', request => require('./routes/map')(request
 
 const cyclicLoad = (loadTimeInterval) => {
 
-  let time = Date.now() / 1000;
-  let timeRange = [time - loadTimeInterval / 1000 - offset/1000, time - offset/1000];
+  evaluator.cyclic();
 
+  let time = Date.now() / 1000;
+  let timeRange = [time - loadTimeInterval / 1000 - offset / 1000, time - offset / 1000];
+
+  evaluator.record();
   return RedisClient.zrangebyscore(redisKey, ...timeRange, 'WITHSCORES', function (err, response) {
     if (err) {
       log.error(err);
@@ -71,12 +76,15 @@ const cyclicLoad = (loadTimeInterval) => {
       log.trace('load 0 item');
       return;
     }
-    log.trace('load data: ', response);
+
+    evaluator.record();
+
+    log.diag('load data: ', response);
 
     let i = 0,
       res,
       tidied_json = {
-        timestamp: time - offset/1000,
+        timestamp: time - offset / 1000,
         tags: {}
       };
 
@@ -110,7 +118,9 @@ const cyclicLoad = (loadTimeInterval) => {
       }
       i = i + 2;
     }
-    log.debug(JSON.stringify(tidied_json, 0, 2));
+    log.debug(JSON.stringify(tidied_json));
+
+    evaluator.record();
 
     let results = { 'n': 0, 'tags': {} };
     var actions = [];
@@ -118,11 +128,11 @@ const cyclicLoad = (loadTimeInterval) => {
       var anchors = tidied_json.tags[tId];
       if (anchors.length >= 3) {
         // anchors.sort(keysort('rssi', true));
-        var input = { 'data': anchors, 'timestamp': tidied_json.timestamp};
+        var input = { 'data': anchors, 'timestamp': tidied_json.timestamp };
         actions.push(
           locateForTag(tId, input)
             .then(function (result) {
-              if ('pos' in result) {
+              if (result.hasOwnProperty('pos')) {
                 result.pos = [
                   Number(Number(result.pos[0]).toFixed(6)),
                   Number(Number(result.pos[1]).toFixed(6))
@@ -131,7 +141,7 @@ const cyclicLoad = (loadTimeInterval) => {
                 result.weight = Number(Number(result.weight).toFixed(3));
                 results.tags[tId] = result;
                 results.n++;
-                log.debug(results);
+                // log.debug(result);
               }
             })
             .catch(function (err) {
@@ -142,7 +152,14 @@ const cyclicLoad = (loadTimeInterval) => {
     }
 
     Promise.all(actions).then(function () {
+
+      evaluator.record('after calculate');
+      evaluator.print(results.n, true);
+      evaluator.handleLine(results.n, true);
+
       if (results.n == 0) return;
+      console.log(results.n);
+      
 
       // save results in redis
       RedisClient.insertResults(results)
@@ -193,7 +210,7 @@ const cyclicDelete = (deleteTimeInterval) => {
     if (err) {
       log.error(err);
     }
-    log.trace('delete ' + response + ' items');
+    log.diag('delete ' + response + ' items');
   });
 };
 

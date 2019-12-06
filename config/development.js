@@ -18,12 +18,30 @@ var config = {
     results_collection: 'results'
   },
   log4js: {
+    levels: {
+      DIAG: { value: 3000, colour: 'magenta' }
+    },
     appenders: {
       console: {
         type: 'console'
       },
-      out: {
-        type: 'stdout'
+      customed: {
+        type: 'console',
+        layout: {
+          type: 'pattern',
+          pattern: '%[[%d] [%p] %c - %m%]'
+        }
+      },
+      aboveDiag: {
+        type: 'logLevelFilter',
+        appender: 'console',
+        level: 'TRACE'
+      },
+      diag: {
+        type: 'logLevelFilter',
+        appender: 'customed',
+        level: 'DIAG',
+        maxLevel: 'DIAG'
       },
       '/app': {
         type: 'file',
@@ -58,15 +76,15 @@ var config = {
         pattern: '.yyyyMMddhh',
         compress: true,
         daysToKeep: 7
-      },
+      }
     },
     categories: {
-      default: { appenders: ['console', 'out'], level: 'INFO' },
-      '/app': { appenders: ['console', '/app'], level: 'DEBUG' },
-      '/root': { appenders: ['console', '/root'], level: 'DEBUG' },
-      '/map': { appenders: ['console', '/map'], level: 'DEBUG' },
-      locManager: { appenders: ['solving'], level: 'DEBUG' },
-      cycLoad: { appenders: ['console', 'cycLoad'], level: 'TRACE' }
+      default:    { level: 'INFO' , appenders: ['console']},
+      '/app':     { level: 'INFO', appenders: ['console', '/app']},
+      '/root':    { level: 'INFO', appenders: ['console', '/root']},
+      '/map':     { level: 'INFO', appenders: ['console', '/map']},
+      locManager: { level: 'INFO', appenders: ['solving']},
+      cycLoad:    { level: 'INFO' , appenders: ['aboveDiag', 'diag']}
     },
     pm2: true,
     pm2InstanceVar: 'INSTANCE_ID'
