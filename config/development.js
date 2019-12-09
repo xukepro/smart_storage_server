@@ -79,16 +79,16 @@ var config = {
       }
     },
     categories: {
-      default:    { level: 'INFO' , appenders: ['console']},
+      default:    { level: 'INFO', appenders: ['console']},
       '/app':     { level: 'INFO', appenders: ['console', '/app']},
       '/root':    { level: 'INFO', appenders: ['console', '/root']},
       '/map':     { level: 'INFO', appenders: ['console', '/map']},
       locManager: { level: 'INFO', appenders: ['solving']},
-      cycLoad:    { level: 'INFO' , appenders: ['aboveDiag', 'diag']}
+      cycLoad:    { level: 'INFO', appenders: ['aboveDiag', 'diag']}
     },
     pm2: true,
     pm2InstanceVar: 'INSTANCE_ID'
   }
-}
+};
 
 module.exports = config;

@@ -39,16 +39,16 @@ var config = {
       },
     },
     categories: {
-      default: { appenders: ['console'], level: 'INFO' },
-      '/app': { appenders: ['console'], level: 'INFO' },
-      '/root': { appenders: ['console'], level: 'INFO' },
-      '/map': { appenders: ['console'], level: 'INFO' },
-      locManager: { appenders: ['solving'], level: 'INFO' },
-      cycLoad: { appenders: ['console'], level: 'INFO' }
+      default:    { level: 'INFO', appenders: ['console'] },
+      '/app':     { level: 'INFO', appenders: ['console'] },
+      '/root':    { level: 'INFO', appenders: ['console'] },
+      '/map':     { level: 'INFO', appenders: ['console'] },
+      locManager: { level: 'INFO', appenders: ['solving'] },
+      cycLoad:    { level: 'INFO', appenders: ['console'] }
     },
     pm2: true,
     pm2InstanceVar: 'INSTANCE_ID'
   }
-}
+};
 
 module.exports = config;

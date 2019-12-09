@@ -4,13 +4,13 @@ var config;
 switch (process.env.NODE_ENV) {
   case 'development':
     config = require('./development');
-  break;
+    break;
   case 'production':
     config = require('./production');
-  break;
+    break;
   default:
     config = require('./development');
-  break;
+    break;
 }
 
 module.exports = config;
