@@ -4,7 +4,6 @@ var http = require('http');
 var https = require('https');
 var locationManager = require('./lib/locationManager');
 
-var keysort = require('./lib/utils/index').keysort;
 var config = require('./config');
 var log4js = require('log4js');
 log4js.configure(config.log4js);
@@ -18,7 +17,7 @@ var redisKey = config.redis.sortedSet.key;
 var offset = config.redis.sortedSet.offset;
 var loadTimeInterval = config.redis.sortedSet.loadTimeInterval;
 var deleteTimeInterval = config.redis.sortedSet.deleteTimeInterval;
-var Evaluator = require('./lib/utils/evaluator');
+var Evaluator = require('./lib/utils').evaluator;
 var evaluator = new Evaluator('evaluate.txt');
 
 var logger = log4js.getLogger('startup');
@@ -37,7 +36,8 @@ http_server.listen(config.http_port, function () {
 });
 httpServers.push(http_server);
 
-if (('https_port' in config) && ('sec' in config)) {
+if (Object.prototype.hasOwnProperty.call(config, 'https_port')
+  && Object.prototype.hasOwnProperty.call(config, 'sec')) {
   let options = { key: config.sec.key, cert: config.sec.crt };
   var https_server = https.createServer(options, function (request, response) {
     logger.info('HTTPS Received request for ' + request.url);
@@ -101,7 +101,7 @@ const cyclicLoad = (loadTimeInterval) => {
 
       for (let item of res.tags) {
 
-        if (!tidied_json.tags.hasOwnProperty(item.tId)) {
+        if (!Object.prototype.hasOwnProperty.call(tidied_json.tags, item.tId)) {
           tidied_json.tags[item.tId] = [[res.aId, item.rssi]];
         } else {
           let len = tidied_json.tags[item.tId].length;
@@ -135,7 +135,7 @@ const cyclicLoad = (loadTimeInterval) => {
         actions.push(
           locateForTag(tId, input)
             .then(function (result) {
-              if (result.hasOwnProperty('pos')) {
+              if (Object.prototype.hasOwnProperty.call(result, 'pos')) {
                 result.pos = [
                   Number(Number(result.pos[0]).toFixed(6)),
                   Number(Number(result.pos[1]).toFixed(6))
@@ -162,7 +162,7 @@ const cyclicLoad = (loadTimeInterval) => {
 
       if (results.n == 0) return;
       console.log(results.n);
-      
+
 
       // save results in redis
       RedisClient.insertResults(results)

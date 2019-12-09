@@ -2,7 +2,7 @@
 var RedisClient = require('../lib/redisClient');
 var config = require('../config/development');
 var redisKey = config.redis.sortedSet.key;
-var decoder = require('../lib/utils/decoder');
+var decoder = require('../lib/utils').decoder;
 
 var log = require('log4js').getLogger('/root');
 
@@ -29,7 +29,8 @@ function messageHandler(message, mongoClient) {
   //   'timestamp': Date.now()
   // }
 
-  if (!json.hasOwnProperty('aId') || !json.hasOwnProperty('tags')) {
+  if (!Object.prototype.hasOwnProperty.call(json, 'aId')
+    || !Object.prototype.hasOwnProperty.call(json, 'tags')) {
     log.error('wrong message data');
     return;
   }
@@ -39,9 +40,9 @@ function messageHandler(message, mongoClient) {
     return {
       aId: k,
       tags: json.tags.map((tId) => decoder.tagData(tId)),
-      timestamp: json.timestamp/1000
-    }
-  }
+      timestamp: json.timestamp / 1000
+    };
+  };
   let decodeJson = decode(json);
   log.debug('decodeJson: ' + JSON.stringify(decodeJson));
 
