@@ -15,7 +15,8 @@ var config = {
     host: '127.0.0.1',
     database: 'smart_storage',
     request_collection: 'request',
-    results_collection: 'results'
+    results_collection: 'results',
+    coords_collection: 'coords'
   },
   log4js: {
     levels: {
@@ -79,12 +80,12 @@ var config = {
       }
     },
     categories: {
-      default:    { level: 'INFO' , appenders: ['console']},
-      '/app':     { level: 'INFO', appenders: ['console', '/app']},
-      '/root':    { level: 'INFO', appenders: ['console', '/root']},
-      '/map':     { level: 'INFO', appenders: ['console', '/map']},
-      locManager: { level: 'INFO', appenders: ['solving']},
-      cycLoad:    { level: 'INFO' , appenders: ['aboveDiag', 'diag']}
+      default:    { level: 'DEBUG' , appenders: ['console']},
+      '/app':     { level: 'DEBUG', appenders: ['console', '/app']},
+      '/root':    { level: 'DEBUG', appenders: ['console', '/root']},
+      '/map':     { level: 'DEBUG', appenders: ['console', '/map']},
+      locManager: { level: 'DEBUG', appenders: ['solving']},
+      cycLoad:    { level: 'DEBUG' , appenders: ['aboveDiag', 'diag']}
     },
     pm2: true,
     pm2InstanceVar: 'INSTANCE_ID'
