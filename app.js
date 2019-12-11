@@ -154,8 +154,7 @@ const cyclicLoad = (loadTimeInterval) => {
     Promise.all(actions).then(function () {
 
       evaluator.record('after calculate');
-      evaluator.print(results.n, true);
-      evaluator.handleLine(results.n, true);
+      evaluator.print(results.n, true, true);
 
       if (results.n == 0) return;
       console.log(results.n);
@@ -186,7 +185,7 @@ const cyclicLoad = (loadTimeInterval) => {
       // for (let user_id in connectionsForMap) {
       //   if (typeof (connectionsForMap[user_id].floorInfo) === "undefined") continue;
       //   console.log('\nReturn Message to ' + user_id + '(map) at ' + Date.now() + ':');
-      //   for (let tId in answer.tags) {
+      //   for (let tId in answe r.tags) {
       //     var coord = coordConverter.convert(
       //       answer.tags[tId].pos,
       //       connectionsForMap[user_id].floorInfo,
