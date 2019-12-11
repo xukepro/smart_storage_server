@@ -15,7 +15,8 @@ var config = {
     host: '127.0.0.1',
     database: 'smart_storage',
     request_collection: 'request',
-    results_collection: 'results'
+    results_collection: 'results',
+    coords_collection: 'coords'
   },
   log4js: {
     levels: {

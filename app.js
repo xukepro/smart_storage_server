@@ -10,6 +10,9 @@ log4js.configure(config.log4js);
 var wsConnection = require('./lib/wsConnection');
 var RedisClient = require('./lib/redisClient');
 var MongoClient = require('./lib/mongoClient');
+
+var mongoClient = new MongoClient();
+
 var redisKey = config.redis.sortedSet.key;
 var offset = config.redis.sortedSet.offset;
 var loadTimeInterval = config.redis.sortedSet.loadTimeInterval;
@@ -56,7 +59,7 @@ var router = new WebSocketRouter();
 router.attachServer(wssServer);
 
 router.mount('/app', 'echo-protocol', request => require('./routes/app')(request, wsConnection));
-router.mount('/root', 'echo-protocol', request => require('./routes/root')(request, wsConnection));
+router.mount('/root', 'echo-protocol', request => require('./routes/root')(request, wsConnection, mongoClient));
 router.mount('/map', 'echo-protocol', request => require('./routes/map')(request, wsConnection));
 
 const cyclicLoad = (loadTimeInterval) => {
@@ -171,7 +174,7 @@ const cyclicLoad = (loadTimeInterval) => {
 
       results.task = '0';
       // save results in mongodb
-      MongoClient.insertResults(results)
+      mongoClient.insertResults(results)
         .then(function (res) {
           log.trace('Mongo insert success');
         })

@@ -1,4 +1,4 @@
-var MongoClient = require('../lib/mongoClient');
+// var MongoClient = require('../lib/mongoClient');
 var RedisClient = require('../lib/redisClient');
 var config = require('../config/development');
 var redisKey = config.redis.sortedSet.key;
@@ -6,17 +6,17 @@ var decoder = require('../lib/utils').decoder;
 
 var log = require('log4js').getLogger('/root');
 
-module.exports = function init(request, wsConnection) {
-  wsConnection.init(request, 'root', 'utf8', function (message) {
+module.exports = function init(request, wsConnection, mongoClient) {
+  wsConnection.init(request, 'root', 'utf8', function(message) {
     try {
-      messageHandler(message);
+      messageHandler(message, mongoClient);
     } catch (e) {
       console.error(e);
     }
   });
 };
 
-function messageHandler(message) {
+function messageHandler(message, mongoClient) {
   log.debug('handling message: ' + JSON.stringify(message));
   let json = JSON.parse(message.utf8Data);
   //  json = {
@@ -58,7 +58,7 @@ function messageHandler(message) {
   });
 
   // save request in mongodb
-  MongoClient.insertRequest(json)
+  mongoClient.insertRequest(json)
     .then(function (res) {
       log.trace('Mongo insert success');
     })
