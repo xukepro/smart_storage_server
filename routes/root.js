@@ -1,22 +1,30 @@
-// var MongoClient = require('../lib/mongoClient');
-var RedisClient = require('../lib/redisClient');
+// var mongoClient = require('../lib/mongoClient');
+// var RedisClient = require('../lib/redisClient');
 var config = require('../config/development');
 var redisKey = config.redis.sortedSet.key;
 var decoder = require('../lib/utils').decoder;
 
 var log = require('log4js').getLogger('/root');
+var RedisClient;
+var wsConnection;
+var mongoClient;
 
-module.exports = function init(request, wsConnection, mongoClient) {
+module.exports = function init(request, globalValues) {
+
+  RedisClient = globalValues.RedisClient;
+  wsConnection = globalValues.wsConnection;
+  mongoClient = globalValues.mongoClient;
+
   wsConnection.init(request, 'root', 'utf8', function(message) {
     try {
-      messageHandler(message, mongoClient);
+      messageHandler(message);
     } catch (e) {
       console.error(e);
     }
   });
 };
 
-function messageHandler(message, mongoClient) {
+function messageHandler(message) {
   log.debug('handling message: ' + JSON.stringify(message));
   let json = JSON.parse(message.utf8Data);
   //  json = {
