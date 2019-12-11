@@ -12,6 +12,7 @@ var RedisClient = require('./lib/redisClient');
 var MongoClient = require('./lib/mongoClient');
 
 var mongoClient = new MongoClient();
+var redisClient = new RedisClient(config.redis);
 
 var redisKey = config.redis.sortedSet.key;
 var offset = config.redis.sortedSet.offset;
@@ -70,7 +71,7 @@ const cyclicLoad = (loadTimeInterval) => {
   let timeRange = [time - loadTimeInterval / 1000 - offset / 1000, time - offset / 1000];
 
   evaluator.record();
-  return RedisClient.zrangebyscore(redisKey, ...timeRange, 'WITHSCORES', function (err, response) {
+  return redisClient.getReqests(redisKey, ...timeRange, 'WITHSCORES', function (err, response) {
     if (err) {
       log.error(err);
       return;
@@ -164,7 +165,7 @@ const cyclicLoad = (loadTimeInterval) => {
 
 
       // save results in redis
-      RedisClient.insertResults(results)
+      redisClient.insertResults(results)
         .then(function () {
           log.trace('Redis insert success');
         })
@@ -208,7 +209,7 @@ const cyclicDelete = (deleteTimeInterval) => {
   let time = Date.now() / 1000;
   let timeRange = [0, time - deleteTimeInterval / 1000];
 
-  return RedisClient.zremrangebyscore(redisKey, ...timeRange, function (err, response) {
+  return redisClient.delReqests(redisKey, ...timeRange, function (err, response) {
     if (err) {
       log.error(err);
     }
@@ -226,7 +227,7 @@ setInterval(function () {
 
 function locateForTag(tId, input) {
   return new Promise(function (resolve, reject) {
-    RedisClient.getPrevious(tId)
+    redisClient.getPrevious(tId)
       .then(function (previous) {
         input.previous = previous;
         log.debug('Locating for tag ' + tId + ' using parameters: ');
