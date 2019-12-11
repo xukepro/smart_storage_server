@@ -6,7 +6,7 @@ var config = {
     sortedSet: {
       key: 'sorted-anchors',
       loadTimeInterval: 1000,
-      deleteTimeInterval: 60000,
+      deleteTimeInterval: 3000,
       offset: 3000
     },
   },

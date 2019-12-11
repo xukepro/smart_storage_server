@@ -46,6 +46,7 @@
           "SwitchCase": 1,
           "flatTernaryExpressions": true
         }
-      ]
+      ],
+      "space-before-function-paren": [1, "always"]
     }
   }

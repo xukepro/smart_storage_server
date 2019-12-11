@@ -8,3 +8,4 @@ logs
 pm2.json
 ouput.txt
 evaluate.txt
+webSocketClient.js
