@@ -1,11 +1,11 @@
-var RedisClient = require('../lib/redisClient');
+var redisClient = require('../lib/redisClient');
 var stepManager = require('../lib/stepManager');
 var locationManager = require('../lib/locationManager');
 var Kalman = require('./lib/kalmanFilter');
 
 var log = require('log4js').getLogger('/app');
 
-module.exports = function init(request, wsConnection) {
+module.exports = function init (request, wsConnection) {
   wsConnection.init(request, 'app', 'utf8', function (message) {
     try {
       messageHandler(message, request.resourceURL.query.user_id);
@@ -21,7 +21,7 @@ var nearestForApp = {};
 var kalmanFilterForApp = {}; // kalmanFilter for different users
 var totalDistanceForApp = {};
 
-function messageHandler(message, uId) {
+function messageHandler (message, uId) {
   let input = JSON.parse(message.utf8Data);
 
   var result = {};
@@ -48,8 +48,8 @@ function messageHandler(message, uId) {
   }
 }
 
-function stepForUser(uId, input) {
-  RedisClient.getPrevious(uId)
+function stepForUser (uId, input) {
+  redisClient.getPrevious(uId)
     .then(function (previous) {
       if (previous.length <= 0) {
         return {};
@@ -92,7 +92,7 @@ let SIZE_CUPT = 2;
 let RSSI_CUPT = -54;
 // check if all rssi is bellow a certain value and is from a same reference point
 module.exports.checkAllRssi = checkAllRssi;
-function checkAllRssi(refps) {
+function checkAllRssi (refps) {
   if (refps.length < SIZE_CUPT) {
     return 0;
   }
@@ -105,8 +105,8 @@ function checkAllRssi(refps) {
   return 1;
 }
 
-function locateForUser(uId, input) {
-  RedisClient.getPrevious(uId)
+function locateForUser (uId, input) {
+  redisClient.getPrevious(uId)
     .then(function (previous) {
       input.previous = previous;
       log.debug('Locating for user ' + uId + ' using parameters: ');
@@ -136,14 +136,14 @@ function locateForUser(uId, input) {
     });
 }
 
-function userKF(uId) {
+function userKF (uId) {
   if (!kalmanFilterForApp[uId]) {
     initUserKF(uId);
   }
   return kalmanFilterForApp[uId];
 }
 
-function initUserKF(uId) {
+function initUserKF (uId) {
   kalmanFilterForApp[uId] = new Kalman(
     [[1, 0], [0, 1]],
     [[1, 0], [0, 1]],
@@ -151,24 +151,24 @@ function initUserKF(uId) {
   );
 }
 
-function userTotalDis(uId) {
+function userTotalDis (uId) {
   if (!totalDistanceForApp[uId]) {
     initUserTotalDis(uId);
   }
   return totalDistanceForApp[uId];
 }
 
-function initUserTotalDis(uId) {
+function initUserTotalDis (uId) {
   totalDistanceForApp[uId] = { previous: [], skiped: 0, dis: 0, n: 0, k: 0.8 };
 }
 
-function userNearest(uId) {
+function userNearest (uId) {
   if (!nearestForApp[uId]) {
     initUserNearest(uId);
   }
   return nearestForApp[uId];
 }
 
-function initUserNearest(uId) {
+function initUserNearest (uId) {
   nearestForApp[uId] = [];
 }

@@ -1,22 +1,30 @@
-// var MongoClient = require('../lib/mongoClient');
-var RedisClient = require('../lib/redisClient');
+// var mongoClient = require('../lib/mongoClient');
+// var RedisClient = require('../lib/redisClient');
 var config = require('../config/development');
 var redisKey = config.redis.sortedSet.key;
 var decoder = require('../lib/utils').decoder;
 
 var log = require('log4js').getLogger('/root');
+var redisClient;
+var wsConnection;
+var mongoClient;
 
-module.exports = function init(request, wsConnection, mongoClient) {
-  wsConnection.init(request, 'root', 'utf8', function(message) {
+module.exports = function init (request, globalValues) {
+
+  redisClient = globalValues.redisClient;
+  wsConnection = globalValues.wsConnection;
+  mongoClient = globalValues.mongoClient;
+
+  wsConnection.init(request, 'root', 'utf8', function (message) {
     try {
-      messageHandler(message, mongoClient);
+      messageHandler(message);
     } catch (e) {
       console.error(e);
     }
   });
 };
 
-function messageHandler(message, mongoClient) {
+function messageHandler (message) {
   log.debug('handling message: ' + JSON.stringify(message));
   let json = JSON.parse(message.utf8Data);
   //  json = {
@@ -49,18 +57,18 @@ function messageHandler(message, mongoClient) {
   let redisObj = [decodeJson.timestamp, JSON.stringify({ aId: decodeJson.aId, tags: decodeJson.tags })];
 
   //add tidied_json to redis sorted set
-  RedisClient.zadd(redisKey, redisObj, function (err, res) {
-    if (err) {
-      log.error(err);
-      return;
-    }
-    log.trace('added ' + res + ' items to redis');
-  });
+  redisClient.insertRequest(redisKey, redisObj)
+    .then(function (res) {
+      log.trace('added ' + res + ' items to Redis');
+    })
+    .catch(function (err) {
+      throw err;
+    });
 
   // save request in mongodb
   mongoClient.insertRequest(json)
     .then(function (res) {
-      log.trace('Mongo insert success');
+      log.trace('MongoDB insert success');
     })
     .catch(function (err) {
       throw err;

@@ -6,7 +6,7 @@ var config = {
     sortedSet: {
       key: 'sorted-anchors',
       loadTimeInterval: 1000,
-      deleteTimeInterval: 60000,
+      deleteTimeInterval: 3000,
       offset: 3000
     },
   },
@@ -84,8 +84,8 @@ var config = {
       '/app':     { level: 'INFO', appenders: ['console', '/app']},
       '/root':    { level: 'INFO', appenders: ['console', '/root']},
       '/map':     { level: 'INFO', appenders: ['console', '/map']},
-      locManager: { level: 'INFO', appenders: ['solving']},
-      cycLoad:    { level: 'INFO', appenders: ['aboveDiag', 'diag']}
+      locManager: { level: 'DEBUG', appenders: ['console', 'solving']},
+      cycLoad:    { level: 'DIAG', appenders: ['aboveDiag', 'diag']}
     },
     pm2: true,
     pm2InstanceVar: 'INSTANCE_ID'
