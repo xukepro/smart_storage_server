@@ -6,8 +6,8 @@ var config = {
     sortedSet: {
       key: 'sorted-anchors',
       loadTimeInterval: 1000,
-      deleteTimeInterval: 3000,
-      offset: 3000
+      deleteTimeInterval: 10000,
+      offset: 0
     },
   },
   mongodb: {
@@ -80,12 +80,12 @@ var config = {
       }
     },
     categories: {
-      default:    { level: 'INFO', appenders: ['console']},
-      '/app':     { level: 'INFO', appenders: ['console', '/app']},
-      '/root':    { level: 'INFO', appenders: ['console', '/root']},
-      '/map':     { level: 'INFO', appenders: ['console', '/map']},
-      locManager: { level: 'INFO', appenders: ['solving']},
-      cycLoad:    { level: 'INFO', appenders: ['aboveDiag', 'diag']}
+      default:    { level: 'DEBUG', appenders: ['console']},
+      '/app':     { level: 'DEBUG', appenders: ['console', '/app']},
+      '/root':    { level: 'DEBUG', appenders: ['console', '/root']},
+      '/map':     { level: 'DEBUG', appenders: ['console', '/map']},
+      locManager: { level: 'DEBUG', appenders: ['solving']},
+      cycLoad:    { level: 'DIAG', appenders: ['aboveDiag', 'diag']}
     },
     pm2: true,
     pm2InstanceVar: 'INSTANCE_ID'

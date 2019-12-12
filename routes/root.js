@@ -9,13 +9,13 @@ var RedisClient;
 var wsConnection;
 var mongoClient;
 
-module.exports = function init(request, globalValues) {
+module.exports = function init (request, globalValues) {
 
   RedisClient = globalValues.RedisClient;
   wsConnection = globalValues.wsConnection;
   mongoClient = globalValues.mongoClient;
 
-  wsConnection.init(request, 'root', 'utf8', function(message) {
+  wsConnection.init(request, 'root', 'utf8', function (message) {
     try {
       messageHandler(message);
     } catch (e) {
@@ -24,7 +24,7 @@ module.exports = function init(request, globalValues) {
   });
 };
 
-function messageHandler(message) {
+function messageHandler (message) {
   log.debug('handling message: ' + JSON.stringify(message));
   let json = JSON.parse(message.utf8Data);
   //  json = {
