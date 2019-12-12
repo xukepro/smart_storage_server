@@ -1,16 +1,14 @@
-// var mongoClient = require('../lib/mongoClient');
-// var RedisClient = require('../lib/redisClient');
-var config = require('../config/development');
-var redisKey = config.redis.sortedSet.key;
 var decoder = require('../lib/utils').decoder;
 
-var log = require('log4js').getLogger('/root');
+var redisKey;
+var log;
 var redisClient;
 var wsConnection;
 var mongoClient;
 
 module.exports = function init (request, globalValues) {
-
+  redisKey = globalValues.config.redis.sortedSet.key;
+  log = globalValues.log.getLogger("/root");
   redisClient = globalValues.redisClient;
   wsConnection = globalValues.wsConnection;
   mongoClient = globalValues.mongoClient;

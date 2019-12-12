@@ -6,29 +6,37 @@ var https = require('https');
 var config = require('./config');
 var log4js = require('log4js');
 log4js.configure(config.log4js);
-var log = log4js.getLogger('startup');
-
-// var wsConnection = require('./lib/wsConnection');
-// var RedisClient = require('./lib/redisClient');
-// var mongoClient = require('./lib/mongoClient');
 
 var httpServers = [];
 
+var log = log4js.getLogger('startup');
+
+var MongoClient = require('./lib/mongoClient');
+var RedisClient = require('./lib/redisClient');
+
+/* 全局变量 */
 const globalValues = {
   config: config,
-  wsConnection: require('./lib/wsConnection'),
-  redisClient: require('./lib/redisClient'),
-  mongoClient: require('./lib/mongoClient'),
   log: log4js,
+  wsConnection: require('./lib/wsConnection'),
+  redisClient: new RedisClient(config.redis, log4js),
+  mongoClient: new MongoClient(config.mongodb, log4js),
   rcoords: {}
 };
 
+/* 给全局变量的rcoods赋值 */
 globalValues.mongoClient.getCoords().then(res => {
   for (let row of res) {
     globalValues.rcoords[row._id] = row.coords;
   }
 });
 
+/* 循环处理数据 */
+let CyclicHandle = require('./lib/cyclicHandle');
+let cyclicHandle = new CyclicHandle(globalValues);
+cyclicHandle.start();
+
+/* httpServer */
 var http_server = http.createServer(function (request, response) {
   log.info('HTTP Received request for ' + request.url);
   response.writeHead(404);
@@ -39,6 +47,7 @@ http_server.listen(config.http_port, function () {
 });
 httpServers.push(http_server);
 
+/* httpServers */
 if (Object.prototype.hasOwnProperty.call(config, 'https_port')
   && Object.prototype.hasOwnProperty.call(config, 'sec')) {
   let options = { key: config.sec.key, cert: config.sec.crt };
@@ -53,6 +62,7 @@ if (Object.prototype.hasOwnProperty.call(config, 'https_port')
   httpServers.push(https_server);
 }
 
+/* wssServer */
 var wssServer = new WebSocketServer({
   httpServer: httpServers,
   autoAcceptConnections: false
@@ -64,5 +74,3 @@ router.attachServer(wssServer);
 router.mount('/app', 'echo-protocol', request => require('./routes/app')(request, globalValues));
 router.mount('/root', 'echo-protocol', request => require('./routes/root')(request, globalValues));
 router.mount('/map', 'echo-protocol', request => require('./routes/map')(request, globalValues));
-
-require('./lib/cyclicHandle')(globalValues);
