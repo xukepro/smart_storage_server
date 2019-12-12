@@ -13,7 +13,7 @@ module.exports = function init (request, globalValues) {
   wsConnection = globalValues.wsConnection;
   mongoClient = globalValues.mongoClient;
 
-  wsConnection.init(request, 'root', 'utf8', function (message) {
+  wsConnection.init(request, 'root', 'utf8,binary', function (message) {
     try {
       messageHandler(message);
     } catch (e) {
@@ -23,20 +23,29 @@ module.exports = function init (request, globalValues) {
 };
 
 function messageHandler (message) {
-  log.debug('handling message: ' + JSON.stringify(message));
-  let json = JSON.parse(message.utf8Data);
-  //  json = {
-  //     'aId': '904E9140F916',
-  //     'tags': [
-  //       '23FDA50693A4E24FB1AFCFC6EB0764782527110001',
-  //       '27FDA50693A4E24FB1AFCFC6EB0764782527110002',
-  //       '30FDA50693A4E24FB1AFCFC6EB0764782527110003'
-  //     ],
-  //   'timestamp': Date.now()
-  // }
+
+  let json;
+
+  if (message.type === 'binary') {
+    log.debug('handling message: ' + message);
+    json = decoder.tagBData(message.binaryData);
+  } else {
+    log.debug('handling message: ' + JSON.stringify(message));
+    json = JSON.parse(message.utf8Data);
+  }
+
+  /*  json = {
+        'aId': '904E9140F916',
+        'tags': [
+          '23FDA50693A4E24FB1AFCFC6EB0764782527110001',
+          '27FDA50693A4E24FB1AFCFC6EB0764782527110002',
+          '30FDA50693A4E24FB1AFCFC6EB0764782527110003'
+        ],
+      'timestamp': Date.now()
+    } */
 
   if (!Object.prototype.hasOwnProperty.call(json, 'aId')
-    || !Object.prototype.hasOwnProperty.call(json, 'tags')) {
+      || !Object.prototype.hasOwnProperty.call(json, 'tags')) {
     log.error('wrong message data');
     return;
   }
@@ -50,6 +59,7 @@ function messageHandler (message) {
     };
   };
   let decodeJson = decode(json);
+
   log.debug('decodeJson: ' + JSON.stringify(decodeJson));
 
   let redisObj = [decodeJson.timestamp, JSON.stringify({ aId: decodeJson.aId, tags: decodeJson.tags })];
