@@ -54,7 +54,7 @@ router.route('/change').post(function (req, res, next) {
     });
 
 }, function (req, res, next) {
-  
+
   log.info('change rcoords successed');
   respond(res, 200, { 'rcoords': rcoords });
 
@@ -69,8 +69,8 @@ router.route('/get').get(function (req, res, next) {
 router.route('/reload').get(function (req, res, next) {
 
   mongoClient.getCoords()
-    .then(function () {
-      for (let row of res) {
+    .then(function (response) {
+      for (let row of response) {
         rcoords[row._id] = row.coords;
       }
       return next();
