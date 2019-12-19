@@ -25,6 +25,7 @@ var config = {
     results_collection: 'results',
     coords_collection: 'coords'
   },
+  enable_map: 1,
   log4js: {
     appenders: {
       console: {
@@ -44,6 +45,7 @@ var config = {
       '/app':     { level: 'INFO', appenders: ['console'] },
       '/root':    { level: 'INFO', appenders: ['console'] },
       '/map':     { level: 'INFO', appenders: ['console'] },
+      '/coord':   { level: 'INFO', appenders: ['console'] },
       locManager: { level: 'INFO', appenders: ['solving'] },
       cycLoad:    { level: 'INFO', appenders: ['console'] }
     },

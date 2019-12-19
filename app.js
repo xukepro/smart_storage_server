@@ -1,3 +1,5 @@
+const express = require('express');
+var app = new express();
 var WebSocketServer = require('websocket').server;
 var WebSocketRouter = require('websocket').router;
 var http = require('http');
@@ -37,11 +39,7 @@ let cyclicHandle = new CyclicHandle(globalValues);
 cyclicHandle.start();
 
 /* httpServer */
-var http_server = http.createServer(function (request, response) {
-  log.info('HTTP Received request for ' + request.url);
-  response.writeHead(404);
-  response.end();
-});
+var http_server = http.createServer(app);
 http_server.listen(config.http_port, function () {
   log.info('HTTP Server is listening on port ' + config.http_port);
 });
@@ -74,3 +72,5 @@ router.attachServer(wssServer);
 router.mount('/app', 'echo-protocol', request => require('./routes/app')(request, globalValues));
 router.mount('/root', 'echo-protocol', request => require('./routes/root')(request, globalValues));
 router.mount('/map', 'echo-protocol', request => require('./routes/map')(request, globalValues));
+
+app.use('/coord', require('./routes/coord')(globalValues));

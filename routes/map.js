@@ -1,18 +1,21 @@
-var validator = require('validator');
+var log;
+var wsConnection;
 
-var log = require('log4js').getLogger('/map');
+module.exports = function init (request, globalValues) {
+  log = globalValues.log.getLogger("/map");
+  wsConnection = globalValues.wsConnection;
 
-module.exports = function init (request, wsConnection) {
   wsConnection.init(request, 'map', 'utf8', function (message) {
     try {
-      messageHandler(message, wsConnection.maps[request.resourceURL.query.user_id]);
+      messageHandler(message, wsConnection.maps[request.resourceURL.query.user_id], request.resourceURL.query.tag_id);
     } catch (e) {
       console.error(e);
     }
   });
 };
 
-function messageHandler (message, connection) {
+function messageHandler (message, connection, selectedTag) {
   connection.floorInfo = JSON.parse(message.utf8Data); // save floorInfo from webpage
-  log.info('saved floorInfo.');
+  connection.selectedTag = selectedTag; // save selectedTag from webpage
+  log.info('floorInfo and selectedTag saved .');
 }
