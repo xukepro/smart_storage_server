@@ -1,4 +1,5 @@
 const express = require('express');
+var bodyParser = require('body-parser');
 var app = new express();
 var WebSocketServer = require('websocket').server;
 var WebSocketRouter = require('websocket').router;
@@ -72,5 +73,9 @@ router.attachServer(wssServer);
 router.mount('/app', 'echo-protocol', request => require('./routes/app')(request, globalValues));
 router.mount('/root', 'echo-protocol', request => require('./routes/root')(request, globalValues));
 router.mount('/map', 'echo-protocol', request => require('./routes/map')(request, globalValues));
+
+/* http use middleware */
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 app.use('/coord', require('./routes/coord')(globalValues));

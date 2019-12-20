@@ -25,26 +25,27 @@ var respond = function (res, statusCode, params, msg, contentType) {
   res.send(operationStatus);
 };
 
-router.route('/change').post(function (req, res, next) {
+router.route('/update').post(function (req, res, next) {
 
-  let getRcoords = req.body.rcoords;
-  for (let k of Object.keys(getRcoords.getRcoords)){
-    let json = {_id: k, coords: getRcoords.getRcoords[k]};
-    console.log(json);
-    mongoClient.Coords(json).save()
-      .then(function () {
-        return next();
-      })
-      .catch(function (err) {
-        return next(err);
-      });
+  console.log(req.body);
+  let rcoords = req.body.rcoords;
+  var actions = [];
+  for (let id of Object.keys(rcoords)) {
+    actions.push(mongoClient.upsertCoords(id, rcoords[id]));
   }
+  Promise.all(actions)
+    .then(function () {
+      return next();
+    })
+    .catch(function (err) {
+      return next(err);
+    });
 
 }, function (req, res, next) {
 
   mongoClient.getCoords()
-    .then(function () {
-      for (let row of res) {
+    .then(function (response) {
+      for (let row of response) {
         rcoords[row._id] = row.coords;
       }
       return next();
@@ -55,13 +56,13 @@ router.route('/change').post(function (req, res, next) {
 
 }, function (req, res, next) {
 
-  log.info('change rcoords successed');
+  log.info('update rcoords successed');
   respond(res, 200, { 'rcoords': rcoords });
 
 });
 
 router.route('/get').get(function (req, res, next) {
-
+  
   respond(res, 200, { 'rcoords': rcoords });
 
 });
