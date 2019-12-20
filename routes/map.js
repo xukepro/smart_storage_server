@@ -6,16 +6,17 @@ module.exports = function init (request, globalValues) {
   wsConnection = globalValues.wsConnection;
 
   wsConnection.init(request, 'map', 'utf8', function (message) {
+    wsConnection.maps[request.resourceURL.query.user_id].selectedTag = request.resourceURL.query.tag_id; // save selectedTag from webpage
+    log.info('selectedTag saved.');
     try {
-      messageHandler(message, wsConnection.maps[request.resourceURL.query.user_id], request.resourceURL.query.tag_id);
+      messageHandler(message, wsConnection.maps[request.resourceURL.query.user_id]);
     } catch (e) {
       console.error(e);
     }
   });
 };
 
-function messageHandler (message, connection, selectedTag) {
+function messageHandler (message, connection) {
   connection.floorInfo = JSON.parse(message.utf8Data); // save floorInfo from webpage
-  connection.selectedTag = selectedTag; // save selectedTag from webpage
-  log.info('floorInfo and selectedTag saved .');
+  log.info('floorInfo saved.');
 }
