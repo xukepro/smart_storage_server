@@ -15,6 +15,10 @@ module.exports = function init (request, globalValues) {
 };
 
 function messageHandler (message, connection) {
-  connection.floorInfo = JSON.parse(message.utf8Data); // save floorInfo from webpage
-  log.info('floorInfo saved.');
+  try {
+    connection.floorInfo = JSON.parse(message.utf8Data); // save floorInfo from webpage
+    log.trace('floorInfo saved.');
+  } catch (err) {
+    log.trace('floorInfo wrong.');
+  }
 }
