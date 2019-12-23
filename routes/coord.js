@@ -32,6 +32,9 @@ router.route('/updateOne').post(function (req, res, next) {
   }
 
   let id = req.body.id;
+  if (!Object.prototype.hasOwnProperty.call(rcoords, id)) {
+    rcoords[id] = [-1, -1, 0, 0];
+  }
   var rcoord = rcoords[id];
   if (Object.prototype.hasOwnProperty.call(req.body, 'x')) {
     rcoord[0] = req.body.x;
