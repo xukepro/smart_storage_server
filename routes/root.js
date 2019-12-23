@@ -27,10 +27,10 @@ function messageHandler (message) {
   let json;
 
   if (message.type === 'binary') {
-    log.debug('handling message: ' + message);
+    log.trace('handling message: ' + message);
     json = decoder.tagBData(message.binaryData);
   } else {
-    log.debug('handling message: ' + JSON.stringify(message));
+    log.trace('handling message: ' + JSON.stringify(message));
     json = JSON.parse(message.utf8Data);
   }
 

@@ -89,11 +89,11 @@ var config = {
     categories: {
       default:    { level: 'INFO', appenders: ['console']},
       '/app':     { level: 'INFO', appenders: ['console', '/app']},
-      '/root':    { level: 'INFO', appenders: ['console', '/root']},
+      '/root':    { level: 'DEBUG', appenders: ['console', '/root']},
       '/map':     { level: 'INFO', appenders: ['console', '/map']},
       '/coord':   { level: 'INFO', appenders: ['console', '/coord']},
-      locManager: { level: 'INFO', appenders: ['console', 'solving']},
-      cycLoad:    { level: 'INFO', appenders: ['aboveDiag', 'diag']}
+      locManager: { level: 'DEBUG', appenders: ['console', 'solving']},
+      cycLoad:    { level: 'DIAG', appenders: ['aboveDiag', 'diag']}
     },
     pm2: true,
     pm2InstanceVar: 'INSTANCE_ID'
