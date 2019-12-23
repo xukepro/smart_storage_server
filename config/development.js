@@ -18,6 +18,7 @@ var config = {
     results_collection: 'results',
     coords_collection: 'coords'
   },
+  enable_map: 1,
   log4js: {
     levels: {
       DIAG: { value: 3000, colour: 'magenta' }
@@ -62,6 +63,12 @@ var config = {
         filename: 'logs/routes-map-logs.log',
         compress: false
       },
+      '/coord': {
+        type: 'file',
+        maxLogSize: 1 * 1024 * 1024,
+        filename: 'logs/routes-coord-logs.log',
+        compress: false
+      },
       cycLoad: {
         type: 'dateFile',
         maxLogSize: 5 * 1024 * 1024,
@@ -80,12 +87,13 @@ var config = {
       }
     },
     categories: {
-      default:    { level: 'DEBUG', appenders: ['console']},
-      '/app':     { level: 'DEBUG', appenders: ['console', '/app']},
-      '/root':    { level: 'DEBUG', appenders: ['console', '/root']},
-      '/map':     { level: 'DEBUG', appenders: ['console', '/map']},
-      locManager: { level: 'DEBUG', appenders: ['console', 'solving']},
-      cycLoad:    { level: 'DIAG', appenders: ['aboveDiag', 'diag']}
+      default:    { level: 'INFO', appenders: ['console']},
+      '/app':     { level: 'INFO', appenders: ['console', '/app']},
+      '/root':    { level: 'INFO', appenders: ['console', '/root']},
+      '/map':     { level: 'INFO', appenders: ['console', '/map']},
+      '/coord':   { level: 'INFO', appenders: ['console', '/coord']},
+      locManager: { level: 'INFO', appenders: ['console', 'solving']},
+      cycLoad:    { level: 'INFO', appenders: ['aboveDiag', 'diag']}
     },
     pm2: true,
     pm2InstanceVar: 'INSTANCE_ID'
