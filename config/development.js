@@ -19,10 +19,10 @@ var config = {
     coords_collection: 'coords'
   },
   solve: {
-    FactorA: -69.34, // dBm
-    FactorN: 1.221,
+    defaultFactorA: -69.34, // dBm
+    defaultFactorN: 1.221,
     deploymentHeight: 0, // m
-    TRItimeout: 10, // s
+    TRITimeout: 5, // s
     DOPWeight: 2,
   },
   enable_map: 1,
