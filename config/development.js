@@ -22,8 +22,9 @@ var config = {
     defaultFactorA: -69.34, // dBm
     defaultFactorN: 1.221,
     deploymentHeight: 0, // m
-    TRITimeout: 5, // s
+    TRITimeout: 10, // s
     DOPWeight: 2,
+    windowSize: 5 // windowSize + 1 = fullSize
   },
   enable_map: 1,
   log4js: {
