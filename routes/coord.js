@@ -25,9 +25,51 @@ var respond = function (res, statusCode, params, msg, contentType) {
   res.send(operationStatus);
 };
 
+router.route('/updateOne').post(function (req, res, next) {
+  
+  if (!Object.prototype.hasOwnProperty.call(req.body, 'id')) {
+    return next(1);
+  }
+
+  let id = req.body.id;
+  if (!Object.prototype.hasOwnProperty.call(rcoords, id)) {
+    rcoords[id] = [-1, -1, 0, 0];
+  }
+  var rcoord = rcoords[id];
+  if (Object.prototype.hasOwnProperty.call(req.body, 'x')) {
+    rcoord[0] = req.body.x;
+  }
+  if (Object.prototype.hasOwnProperty.call(req.body, 'y')) {
+    rcoord[1] = req.body.y;
+  }
+  if (Object.prototype.hasOwnProperty.call(req.body, 'A')) {
+    rcoord[2] = req.body.A;
+  }
+  if (Object.prototype.hasOwnProperty.call(req.body, 'N')) {
+    rcoord[3] = req.body.N;
+  }
+  mongoClient.upsertCoords(id, rcoord)
+    .then(function (response) {
+      rcoords[id] = rcoord;
+      return next();
+    })
+    .catch(function (err) {
+      return next(err);
+    });
+
+}, function (req, res, next) {
+
+  log.info('update one rcoord successed');
+  respond(res, 200, { 'rcoords': rcoords });
+
+});
+
 router.route('/update').post(function (req, res, next) {
 
-  console.log(req.body);
+  if (!Object.prototype.hasOwnProperty.call(req.body, 'rcoords')) {
+    return next(1);
+  }
+
   let rcoords = req.body.rcoords;
   var actions = [];
   for (let id of Object.keys(rcoords)) {
