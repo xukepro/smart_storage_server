@@ -87,11 +87,11 @@ var config = {
       }
     },
     categories: {
-      default:    { level: 'INFO', appenders: ['console']},
-      '/app':     { level: 'INFO', appenders: ['console', '/app']},
+      default:    { level: 'DEBUG', appenders: ['console']},
+      '/app':     { level: 'DEBUG', appenders: ['console', '/app']},
       '/root':    { level: 'DEBUG', appenders: ['console', '/root']},
-      '/map':     { level: 'INFO', appenders: ['console', '/map']},
-      '/coord':   { level: 'INFO', appenders: ['console', '/coord']},
+      '/map':     { level: 'DEBUG', appenders: ['console', '/map']},
+      '/coord':   { level: 'DEBUG', appenders: ['console', '/coord']},
       locManager: { level: 'DEBUG', appenders: ['console', 'solving']},
       cycLoad:    { level: 'DIAG', appenders: ['aboveDiag', 'diag']}
     },
