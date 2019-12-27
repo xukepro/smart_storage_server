@@ -31,6 +31,7 @@ var config = {
     deploymentHeight: 0, // m
     TRITimeout: 5, // s
     DOPWeight: 2,
+    windowSize: 5 // windowSize + 1 = fullSize
   },
   enable_map: 1,
   log4js: {
