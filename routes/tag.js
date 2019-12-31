@@ -5,7 +5,7 @@ var mongoClient;
 var rcoords;
 
 module.exports = function init (globalValues) {
-  log = globalValues.log.getLogger("/coordinate");
+  log = globalValues.log.getLogger("/tag");
   mongoClient = globalValues.mongoClient;
   rcoords = globalValues.rcoords;
 
@@ -25,7 +25,9 @@ var respond = function (res, statusCode, params, msg, contentType) {
   res.send(operationStatus);
 };
 
-router.route('/updateOne').post(function (req, res, next) {
+router.route('/register').post(function (req, res, next) {
+
+  addTagConnection();
   
   if (!Object.prototype.hasOwnProperty.call(req.body, 'id')) {
     return next(1);
@@ -64,7 +66,7 @@ router.route('/updateOne').post(function (req, res, next) {
 
 });
 
-router.route('/update').post(function (req, res, next) {
+router.route('/change').post(function (req, res, next) {
 
   if (!Object.prototype.hasOwnProperty.call(req.body, 'rcoords')) {
     return next(1);
@@ -86,7 +88,10 @@ router.route('/update').post(function (req, res, next) {
 }, function (req, res, next) {
 
   mongoClient.getCoords()
-    .then(function () {
+    .then(function (response) {
+      for (let row of response) {
+        rcoords[row._id] = row.coords;
+      }
       return next();
     })
     .catch(function (err) {
@@ -100,16 +105,19 @@ router.route('/update').post(function (req, res, next) {
 
 });
 
-router.route('/get').get(function (req, res, next) {
+router.route('/info').get(function (req, res, next) {
   
   respond(res, 200, { 'rcoords': rcoords });
 
 });
 
-router.route('/reload').get(function (req, res, next) {
+router.route('/all').get(function (req, res, next) {
 
   mongoClient.getCoords()
-    .then(function () {
+    .then(function (response) {
+      for (let row of response) {
+        rcoords[row._id] = row.coords;
+      }
       return next();
     })
     .catch(function (err) {

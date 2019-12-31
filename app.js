@@ -8,12 +8,8 @@ var https = require('https');
 
 var config = require('./config');
 var log4js = require('log4js');
-log4js.configure(config.log4js);
-
-var httpServers = [];
-
-var log = log4js.getLogger('startup');
-
+var tags = [];
+var rcoords = {};
 var MongoClient = require('./lib/mongoClient');
 var RedisClient = require('./lib/redisClient');
 
@@ -21,24 +17,22 @@ var RedisClient = require('./lib/redisClient');
 const globalValues = {
   config: config,
   log: log4js,
-  wsConnection: require('./lib/wsConnection'),
+  tags: tags,
+  rcoords: rcoords,
   redisClient: new RedisClient(config.redis, log4js),
-  mongoClient: new MongoClient(config.mongodb, log4js),
-  rcoords: {}
+  mongoClient: new MongoClient(config.mongodb, log4js, tags, rcoords),
+  wsConnection: require('./lib/wsConnection')
 };
-
-/* 给全局变量的rcoods赋值 */
-globalValues.mongoClient.getCoords().then(res => {
-  for (let row of res) {
-    globalValues.rcoords[row._id] = row.coords;
-  }
-});
 
 /* 循环处理数据 */
 let CyclicHandle = require('./lib/cyclicHandle');
 let cyclicHandle = new CyclicHandle(globalValues);
 cyclicHandle.start();
 
+log4js.configure(config.log4js);
+var log = log4js.getLogger('startup');
+
+var httpServers = [];
 /* httpServer */
 var http_server = http.createServer(app);
 http_server.listen(config.http_port, function () {
@@ -79,3 +73,4 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use('/coord', require('./routes/coord')(globalValues));
+app.use('/tag', require('./routes/tag')(globalValues));

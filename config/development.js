@@ -13,14 +13,14 @@ var config = {
   mongodb: {
     port: '27017',
     host: '127.0.0.1',
-    database: {
-      dbName: 'smart_storage',
+    db: {
+      name: 'smart_storage',
       request_collection: 'request',
       coords_collection: 'coords',
-      tIds_collection: 'tIds',
+      tags_collection: 'tags',
     },
-    database_result: {
-      dbName: 'smart_storage_result',
+    db_result: {
+      name: 'smart_storage_result',
     }
   },
   solve: {

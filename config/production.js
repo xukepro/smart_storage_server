@@ -20,10 +20,15 @@ var config = {
   mongodb: {
     port: '27017',
     host: '127.0.0.1',
-    database: 'smart_storage',
-    request_collection: 'request',
-    results_collection: 'results',
-    coords_collection: 'coords'
+    db: {
+      name: 'smart_storage',
+      request_collection: 'request',
+      coords_collection: 'coords',
+      tags_collection: 'tags',
+    },
+    db_result: {
+      name: 'smart_storage_result',
+    }
   },
   solve: {
     defaultFactorA: -69.34, // dBm
