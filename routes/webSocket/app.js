@@ -1,6 +1,6 @@
-var redisClient = require('../lib/redisClient');
-var stepManager = require('../lib/stepManager');
-var locationManager = require('../lib/locationManager');
+var redisClient = require('../../lib/redisClient');
+var stepManager = require('../../lib/stepManager');
+var locationManager = require('../../lib/locationManager');
 var Kalman = require('./lib/kalmanFilter');
 
 var log = require('log4js').getLogger('/app');

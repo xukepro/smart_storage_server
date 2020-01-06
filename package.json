@@ -5,9 +5,12 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "express": "^4.17.1",
     "geojson-utils": "^1.1.0",
+    "http-assert": "^1.4.1",
     "ioredis": "^4.14.1",
+    "jsonwebtoken": "^8.5.1",
     "log4js": "^4.5.1",
     "mathjs": "^5.9.0",
     "mongodb": "^3.2.3",

@@ -18,6 +18,8 @@ var config = {
       request_collection: 'request',
       coords_collection: 'coords',
       tags_collection: 'tags',
+      adminUser_collection: 'adminUsers',
+      user_collection: 'users',
     },
     db_result: {
       name: 'smart_storage_result',
@@ -100,13 +102,13 @@ var config = {
       }
     },
     categories: {
-      default:    { level: 'DEBUG', appenders: ['console']},
-      '/app':     { level: 'DEBUG', appenders: ['console', '/app']},
-      '/root':    { level: 'DEBUG', appenders: ['console', '/root']},
-      '/map':     { level: 'DEBUG', appenders: ['console', '/map']},
-      '/coord':   { level: 'DEBUG', appenders: ['console', '/coord']},
-      locManager: { level: 'DEBUG', appenders: ['console', 'solving']},
-      cycLoad:    { level: 'DIAG', appenders: ['aboveDiag', 'diag']}
+      default:    { level: 'INFO', appenders: ['console']},
+      '/app':     { level: 'INFO', appenders: ['console', '/app']},
+      '/root':    { level: 'INFO', appenders: ['console', '/root']},
+      '/map':     { level: 'INFO', appenders: ['console', '/map']},
+      '/coord':   { level: 'INFO', appenders: ['console', '/coord']},
+      locManager: { level: 'INFO', appenders: ['console', 'solving']},
+      cycLoad:    { level: 'INFO', appenders: ['aboveDiag', 'diag']}
     },
     pm2: true,
     pm2InstanceVar: 'INSTANCE_ID'

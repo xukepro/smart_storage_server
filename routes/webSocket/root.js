@@ -1,4 +1,4 @@
-var decoder = require('../lib/utils').decoder;
+var decoder = require('../../lib/utils').decoder;
 
 var redisKey;
 var log;
