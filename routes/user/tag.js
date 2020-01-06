@@ -121,7 +121,30 @@ const deleteTag = (req, res, next) => {
       log.info(`delete tag: ${tag.tId} and update user`);
       respond(res, 200, { result }, "success");
     });
+  }).catch((err) => {
+    next(err);
   });
 };
 UserRouter.route("/").delete(paramsMiddleware(["id"]), deleteTag);
 AdminRouter.route("/").delete(paramsMiddleware(["id"]), deleteTag);
+
+
+const getResultsByTag = (req, res, next) => {
+  let { tId, timesatmp, limit} = req.body;
+  let condition = {};
+  // if (timesatmp) {
+  //   condition.timesatmp =
+  // }
+  mongoClient.Result_tags[tId]
+    .find(condition)
+    .sort({timestamp: -1})
+    .limit(limit ? parseInt(limit) : 10)
+    .then((results) => {
+      assert(results, 400, { code: 3003, message: "results don't exist" });
+      respond(res, 200, { results }, "success");
+    }).catch((err) => {
+      next(err);
+    });
+};
+UserRouter.route("/data").get(paramsMiddleware(["tId"]), getResultsByTag);
+AdminRouter.route("/data").get(paramsMiddleware(["tId"]), getResultsByTag);
