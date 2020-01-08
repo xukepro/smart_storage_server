@@ -6,7 +6,7 @@ let UserRouter = express.Router();
 let log;
 let mongoClient;
 let tags;
-let paramsMiddleware = require("../../middleware/paramsMiddleware");
+let params = require("../../middleware/params");
 
 module.exports = function init (globalValues) {
   log = globalValues.log.getLogger("/tag");
@@ -49,12 +49,11 @@ const getTagsByUsername = ( req, res, next ) => {
       respond(res, 200, { tags: user.tags });
     });
 };
-UserRouter.route("/").get(paramsMiddleware(["username"]), getTagsByUsername);
+UserRouter.route("/").get(params(["username"]), getTagsByUsername);
 
 /* 添加tag */
 const addTag = (req, res, next) => {
   let { tId, username, description } = req.body;
-  console.log(tags.indexOf(tId));
   assert(tags.indexOf(tId) === -1, 400, { code: 3001, message: "tag already exist" });
   /* user tId建立关系 */
   mongoClient.User.findOne({ username })
@@ -69,7 +68,6 @@ const addTag = (req, res, next) => {
         });
     })
     .then((user) => {
-      // tags.push(tId);
       log.info(`add tag: ${tId} belong to user: ${username}`);
       respond(res, 200, null, "success");
     })
@@ -77,8 +75,8 @@ const addTag = (req, res, next) => {
       next(err);
     });
 };
-UserRouter.route("/").post(paramsMiddleware(["tId", "username"]), addTag);
-AdminRouter.route("/").post(paramsMiddleware(["tId", "username"]), addTag);
+UserRouter.route("/").post(params(["tId", "username"]), addTag);
+AdminRouter.route("/").post(params(["tId", "username"]), addTag);
 
 /* 修改tag */
 const updateTag = (req, res, next) => {
@@ -93,20 +91,17 @@ const updateTag = (req, res, next) => {
   mongoClient.Tags.findByIdAndUpdate(id, condition)
     .then((tag) => {
       assert(tag, 400, { code: 3003, message: "tag don't exist" });
-      // if (condition.tId) {
-      //   tags.splice(tags.indexOf(tId), 1, condition.tId);
-      // }
-      log.info(`modify tag: ${tId} with condition: ${condition}`);
+      log.info(`modify tag: ${tag.tId} with condition: ${condition}`);
       respond(res, 200, null, "success");
     })
     .catch((err) => {
       next(err);
     });
 };
-UserRouter.route("/").put(paramsMiddleware(["id"]), updateTag);
-AdminRouter.route("/").put(paramsMiddleware(["id"]), updateTag);
+UserRouter.route("/").put(params(["id"]), updateTag);
+AdminRouter.route("/").put(params(["id"]), updateTag);
 
-/* 删除该用户的tag */
+/* 删除tag */
 const deleteTag = (req, res, next) => {
   let { id } = req.body;
 
@@ -117,16 +112,15 @@ const deleteTag = (req, res, next) => {
       { $pull: { tags: id } },
       { multi: true }
     ).then((result) => {
-      // tags.splice(tags.indexOf(tag.tId), 1);
       log.info(`delete tag: ${tag.tId} and update user`);
-      respond(res, 200, { result }, "success");
+      respond(res, 200, null, "success");
     });
   }).catch((err) => {
     next(err);
   });
 };
-UserRouter.route("/").delete(paramsMiddleware(["id"]), deleteTag);
-AdminRouter.route("/").delete(paramsMiddleware(["id"]), deleteTag);
+UserRouter.route("/").delete(params(["id"]), deleteTag);
+AdminRouter.route("/").delete(params(["id"]), deleteTag);
 
 
 const getResultsByTag = (req, res, next) => {
@@ -146,5 +140,5 @@ const getResultsByTag = (req, res, next) => {
       next(err);
     });
 };
-UserRouter.route("/data").get(paramsMiddleware(["tId"]), getResultsByTag);
-AdminRouter.route("/data").get(paramsMiddleware(["tId"]), getResultsByTag);
+UserRouter.route("/data").get(params(["tId"]), getResultsByTag);
+AdminRouter.route("/data").get(params(["tId"]), getResultsByTag);

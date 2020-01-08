@@ -5,7 +5,8 @@ let respond = require("../../lib/utils").respond;
 let router = express.Router();
 let log;
 let mongoClient;
-let paramsMiddleware = require("../../middleware/paramsMiddleware");
+let params = require("../../middleware/params");
+const expirteTime = 60 * 60;
 
 module.exports = function init (globalValues) {
   log = globalValues.log.getLogger("/login");
@@ -13,7 +14,7 @@ module.exports = function init (globalValues) {
   return router;
 };
 
-router.route("/").post(paramsMiddleware(["username", "password"]), (req, res, next) => {
+router.route("/").post(params(["username", "password"]), (req, res, next) => {
   let { username, password } = req.body;
   mongoClient.AdminUser.findOne({ username })
     .select("+password")
@@ -21,7 +22,7 @@ router.route("/").post(paramsMiddleware(["username", "password"]), (req, res, ne
       assert(user, 400, { code: 3003, message: "user don't exist" });
       let isValid = require("bcryptjs").compareSync(password, user.password);
       assert(isValid, 400, { code: 3003, message: "password error" });
-      let token = jwt.sign({ id: user._id }, req.app.get("secret"));
+      let token = jwt.sign({ id: user._id }, req.app.get("secret"), { expiresIn: expirteTime });
       log.info(`adminUser: ${username} login`);
       respond(res, 200, { token }, "success");
     })

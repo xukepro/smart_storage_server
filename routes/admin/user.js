@@ -5,7 +5,7 @@ let router = express.Router();
 let log;
 let mongoClient;
 let tags;
-let paramsMiddleware = require("../../middleware/paramsMiddleware");
+let params = require("../../middleware/params");
 
 module.exports = function init (globalValues) {
   log = globalValues.log.getLogger("/user");
@@ -37,7 +37,7 @@ router.route("/").get((req, res, next) => {
 });
 
 /* 添加用户 */
-router.route("/").post(paramsMiddleware(["username", "password"]), (req, res, next) => {
+router.route("/").post(params(["username", "password"]), (req, res, next) => {
   let { username, password } = req.body;
 
   mongoClient
@@ -53,7 +53,7 @@ router.route("/").post(paramsMiddleware(["username", "password"]), (req, res, ne
 });
 
 /* 修改用户 */
-router.route("/").put(paramsMiddleware(["id"]), (req, res, next) => {
+router.route("/").put(params(["id"]), (req, res, next) => {
   let { id, username, password } = req.body;
   let condition = {};
   if (username) {
@@ -74,7 +74,7 @@ router.route("/").put(paramsMiddleware(["id"]), (req, res, next) => {
 });
 
 /* 删除用户 */
-router.route("/").delete(paramsMiddleware(["id"]), (req, res, next) => {
+router.route("/").delete(params(["id"]), (req, res, next) => {
   let { id } = req.body;
 
   mongoClient.User.findByIdAndRemove(id)

@@ -5,7 +5,7 @@ let respond = require("../../lib/utils").respond;
 let router = express.Router();
 let log;
 let mongoClient;
-let paramsMiddleware = require("../../middleware/paramsMiddleware");
+let params = require("../../middleware/params");
 
 module.exports = function init (globalValues) {
   log = globalValues.log.getLogger("/login");
@@ -13,7 +13,7 @@ module.exports = function init (globalValues) {
   return router;
 };
 
-router.route("/").post(paramsMiddleware(["username", "password"]), (req, res, next) => {
+router.route("/").post(params(["username", "password"]), (req, res, next) => {
   let { username, password } = req.body;
 
   mongoClient
