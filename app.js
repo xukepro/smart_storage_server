@@ -86,7 +86,7 @@ app.use(bodyParser.json());
 app.set("secret", "as;jdhwiebfkjxcvxzcla;wetn;ahre;oq3jkvas");
 
 app.use("/admin/login", require("./routes/admin/login")(globalValues));
-app.use("/admin/coord", require("./routes/admin/anchor")(globalValues));
+app.use("/admin/anchor", require("./routes/admin/anchor")(globalValues));
 app.use("/admin/user", require("./routes/admin/user")(globalValues));
 app.use("/admin/tag", require("./routes/user/tag")(globalValues).AdminRouter);
 
@@ -95,7 +95,7 @@ app.use("/login", require("./routes/user/login")(globalValues));
 app.use("/tag", require("./routes/user/tag")(globalValues).UserRouter);
 
 // app.use("/admin/login", require("./routes/admin/login")(globalValues));
-// app.use("/admin/coord", adminAuth, require("./routes/admin/anchor")(globalValues));
+// app.use("/admin/anchor", adminAuth, require("./routes/admin/anchor")(globalValues));
 // app.use("/admin/user", adminAuth, require("./routes/admin/user")(globalValues));
 // app.use("/admin/tag", adminAuth, require("./routes/user/tag")(globalValues).AdminRouter);
 

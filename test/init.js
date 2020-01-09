@@ -81,7 +81,7 @@ const users = [
 const adminUser = { username: "admin", password: "123456" };
 
 Promise.all([
-  mongoClient.Coords.deleteMany(),
+  mongoClient.Anchors.deleteMany(),
   mongoClient.Tags.deleteMany(),
   mongoClient.User.deleteMany(),
   mongoClient.AdminUser.deleteMany()
@@ -97,7 +97,7 @@ Promise.all([
   .then(() => {
     /* 添加锚点 */
     for (let row of Object.keys(aIds)) {
-      mongoClient.Coords({ aId: row, coords: aIds[row] }).save();
+      mongoClient.Anchors({ aId: row, coords: aIds[row] }).save();
     }
   })
   .then(() => {

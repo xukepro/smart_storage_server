@@ -16,7 +16,7 @@ var config = {
     db: {
       name: 'smart_storage',
       request_collection: 'request',
-      coords_collection: 'coords',
+      coords_collection: 'anchors',
       tags_collection: 'tags',
       adminUser_collection: 'adminUsers',
       user_collection: 'users',

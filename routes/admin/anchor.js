@@ -18,6 +18,7 @@ module.exports = function init (globalValues) {
 /* 查询 */
 router.route("/").get(function (req, res, next) {
   log.info(`get all anchors`);
+  // respond(res, 200, { anchors });
   mongoClient.Anchors.find().then((anchors) => {
     respond(res, 200, { anchors });
   });
