@@ -1,21 +1,21 @@
 let assert = require("http-assert");
 let express = require("express");
 let respond = require("../../lib/utils").respond;
-let router = express.Router();
+let AdminRouter = express.Router();
 let log;
 let mongoClient;
 let tags;
-let { checkBody } = require("../../middleware/params");
+let { checkBody } = require("../../middleware/check");
 
 module.exports = function init (globalValues) {
   log = globalValues.log.getLogger("/user");
   mongoClient = globalValues.mongoClient;
   tags = globalValues.tags;
-  return router;
+  return { AdminRouter };
 };
 
 /* 查询用户 */
-router.route("/").get((req, res, next) => {
+AdminRouter.route("/").get((req, res, next) => {
   let { username } = req.query;
   let getUser;
   if (username) {
@@ -37,11 +37,11 @@ router.route("/").get((req, res, next) => {
 });
 
 /* 添加用户 */
-router.route("/").post(checkBody(["username", "password"]), (req, res, next) => {
-  let { username, password } = req.body;
+AdminRouter.route("/").post(checkBody(["username", "email", "password"]), (req, res, next) => {
+  let { username, email, password } = req.body;
 
   mongoClient
-    .User({ username, password })
+    .User({ username, email, password })
     .save()
     .then((user) => {
       log.info(`add user: ${username}`);
@@ -53,15 +53,18 @@ router.route("/").post(checkBody(["username", "password"]), (req, res, next) => 
 });
 
 /* 修改用户 */
-router.route("/").put(checkBody(["id"]), (req, res, next) => {
-  let { id, username, password } = req.body;
+AdminRouter.route("/").put(checkBody(["id"]), (req, res, next) => {
+  let { id, username, email } = req.body;
   let condition = {};
   if (username) {
     condition.username = username;
   }
-  if (password) {
-    condition.password = password;
+  if (email) {
+    condition.email = email;
   }
+  // if (password) {
+  //   condition.password = password;
+  // }
   mongoClient.User.findByIdAndUpdate(id, condition)
     .then((user) => {
       assert(user, 200, { code: 3003, message: "user don't exist" });
@@ -74,7 +77,7 @@ router.route("/").put(checkBody(["id"]), (req, res, next) => {
 });
 
 /* 删除用户 */
-router.route("/").delete(checkBody(["id"]), (req, res, next) => {
+AdminRouter.route("/").delete(checkBody(["id"]), (req, res, next) => {
   let { id } = req.body;
 
   mongoClient.User.findByIdAndRemove(id)

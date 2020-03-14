@@ -75,40 +75,34 @@ router.mount("/root", "echo-protocol", (request) =>
 router.mount("/map", "echo-protocol", (request) =>
   require("./routes/webSocket/map")(request, globalValues)
 );
+// router.mount("/web", "echo-protocol", (request) =>
+//   require("./routes/webSocket/web")(request, globalValues)
+// );
 
-let userAuth = require('./middleware/auth')(globalValues.mongoClient.User, 'admin');
-let adminAuth = require('./middleware/auth')(globalValues.mongoClient.AdminUser, 'user');
+let userAuth = require('./middleware/auth')(globalValues.mongoClient.User, 'user');
+let adminAuth = require('./middleware/auth')(globalValues.mongoClient.AdminUser, 'admin');
 
 /* http use middleware */
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.set("secret", "as;jdhwiebfkjxcvxzcla;wetn;ahre;oq3jkvas");
+app.set("secret", "jwt-token");
 
-app.use("/admin/login", require("./routes/admin/login")(globalValues));
-app.use("/admin/anchor", require("./routes/admin/anchor")(globalValues));
-app.use("/admin/user", require("./routes/admin/user")(globalValues));
-app.use("/admin/tag", require("./routes/user/tag")(globalValues).AdminRouter);
+app.use("/admin/account", require("./routes/webRoute/account")(globalValues).AdminRouter);
+app.use("/admin/anchor", adminAuth, require("./routes/webRoute/anchor")(globalValues).AdminRouter);
+app.use("/admin/tag", adminAuth, require("./routes/webRoute/tag")(globalValues).AdminRouter);
+app.use("/admin/user", adminAuth, require("./routes/webRoute/user")(globalValues).AdminRouter);
 
-app.use("/register", require("./routes/user/register")(globalValues));
-app.use("/login", require("./routes/user/login")(globalValues));
-app.use("/tag", require("./routes/user/tag")(globalValues).UserRouter);
-
-// app.use("/admin/login", require("./routes/admin/login")(globalValues));
-// app.use("/admin/anchor", adminAuth, require("./routes/admin/anchor")(globalValues));
-// app.use("/admin/user", adminAuth, require("./routes/admin/user")(globalValues));
-// app.use("/admin/tag", adminAuth, require("./routes/user/tag")(globalValues).AdminRouter);
-
-// app.use("/register", require("./routes/user/register")(globalValues));
-// app.use("/login", require("./routes/user/login")(globalValues));
-// app.use("/tag", userAuth, require("./routes/user/tag")(globalValues).UserRouter);
+app.use("/account", require("./routes/webRoute/account")(globalValues).UserRouter);
+app.use("/anchor", userAuth, require("./routes/webRoute/anchor")(globalValues).UserRouter);
+app.use("/tag", userAuth, require("./routes/webRoute/tag")(globalValues).UserRouter);
 
 app.use((err, req, res, next) => {
-  let error = err.status || 500;
+  // let error = err.status || 500;
   let code = err.code;
   let message = err.message;
   if (code === 11000) {
     message = "duplicate key error";
   }
-  res.status(error).send({ code, message });
+  res.send({ code, message });
 });

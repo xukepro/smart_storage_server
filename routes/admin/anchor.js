@@ -5,7 +5,7 @@ let respond = require("../../lib/utils").respond;
 let log;
 let mongoClient;
 let anchors;
-let params = require("../../middleware/params");
+let { checkBody } = require("../../middleware/params");
 
 module.exports = function init (globalValues) {
   log = globalValues.log.getLogger("/coordinate");
@@ -25,14 +25,14 @@ router.route("/").get(function (req, res, next) {
 });
 
 /* 添加 */
-router.route("/").post(params(["aId", "x", "y", "A", "N"]), (req, res, next) => {
+router.route("/").post(checkBody(["aId", "x", "y", "A", "N"]), (req, res, next) => {
   let { aId, x, y, A, N } = req.body;
   let reg = /^-?[0-9]+(.[0-9]+)?$/;
   [x, y, A, N].map((value) => {
-    assert(reg.test(value), 400, { code: 3003, message: `${value} is not a number` });
+    assert(reg.test(value), 200, { code: 3003, message: `${value} is not a number` });
   });
   let coords = [parseFloat(x), parseFloat(y), parseFloat(A), parseFloat(N)];
-  assert(!anchors[aId], 400, { code: 3001, message: "aId already exist" });
+  assert(!anchors[aId], 200, { code: 3001, message: "aId already exist" });
   mongoClient
     .Anchors({ aId, coords })
     .save()
@@ -46,17 +46,17 @@ router.route("/").post(params(["aId", "x", "y", "A", "N"]), (req, res, next) => 
 });
 
 /* 修改 */
-router.route("/").put(params(["id"]), (req, res, next) => {
+router.route("/").put(checkBody(["id"]), (req, res, next) => {
   let { id, aId, x, y, A, N } = req.body;
   let reg = /^-?[0-9]+(.[0-9]+)?$/;
   [x, y, A, N].map((value) => {
     if (value) {
-      assert(reg.test(value), 400, { code: 3003, message: `${value} is not a number` });
+      assert(reg.test(value), 200, { code: 3003, message: `${value} is not a number` });
     }
   });
   mongoClient.Anchors.findById(id)
     .then((anchor) => {
-      assert(anchor, 400, { code: 3003, message: "anchor don't exist" });
+      assert(anchor, 200, { code: 3003, message: "anchor don't exist" });
       anchor.aId = aId || anchor.aId;
       anchor.coords = [
         x ? parseFloat(x) : anchor.coords[0],
@@ -76,11 +76,11 @@ router.route("/").put(params(["id"]), (req, res, next) => {
 });
 
 /* 删除 */
-router.route("/").delete(params(["id"]), (req, res, next) => {
+router.route("/").delete(checkBody(["id"]), (req, res, next) => {
   let { id } = req.body;
   mongoClient.Anchors.findByIdAndRemove(id)
     .then((anchor) => {
-      assert(anchor, 400, { code: 3003, message: "anchor don't exist" });
+      assert(anchor, 200, { code: 3003, message: "anchor don't exist" });
       log.info(`delete anchor: ${anchor.aId}`);
       respond(res, 200, null, "success");
     })

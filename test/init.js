@@ -70,13 +70,13 @@ const tIds = [
   { tId: "10001-04096", username: "xuke" },
   { tId: "10001-04097", username: "xuke" },
   { tId: "10001-04098", username: "xuke" },
-  { tId: "10001-04099", username: "jhz" },
-  { tId: "10001-04100", username: "jhz" },
-  { tId: "10001-04101", username: "jhz" }
+  { tId: "10001-04099", username: "abcd" },
+  { tId: "10001-04100", username: "abcd" },
+  { tId: "10001-04101", username: "abcd" }
 ];
 const users = [
-  { username: "xuke", password: "123" },
-  { username: "jhz", password: "abc" }
+  { username: "xuke", password: "123456", email: "2574290343@qq.com" },
+  { username: "abcd", password: "123456", email: "10201947@qq.com" }
 ];
 const adminUser = { username: "admin", password: "123456" };
 
