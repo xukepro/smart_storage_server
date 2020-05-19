@@ -5,7 +5,7 @@ let AdminRouter = express.Router();
 let log;
 let mongoClient;
 let tags;
-let { checkBody } = require("../../middleware/check");
+let check = require("../../middleware/check");
 
 module.exports = function init (globalValues) {
   log = globalValues.log.getLogger("/user");
@@ -15,7 +15,7 @@ module.exports = function init (globalValues) {
 };
 
 /* 查询用户 */
-AdminRouter.route("/").get((req, res, next) => {
+AdminRouter.route("/").get(check("query", ["username"]), (req, res, next) => {
   let { username } = req.query;
   let getUser;
   if (username) {
@@ -27,7 +27,7 @@ AdminRouter.route("/").get((req, res, next) => {
     .populate({ path: "tags" })
     // .select("+password")
     .then((users) => {
-      assert(users, 200, { code: 3001, message: "user don't exist" });
+      assert(users, 202, { code: 3001, message: "user don't exist" });
       log.info("get users");
       respond(res, 200, { users });
     })
@@ -37,8 +37,11 @@ AdminRouter.route("/").get((req, res, next) => {
 });
 
 /* 添加用户 */
-AdminRouter.route("/").post(checkBody(["username", "email", "password"]), (req, res, next) => {
+AdminRouter.route("/").post(check("body", ["username", "email", "password"]), (req, res, next) => {
   let { username, email, password } = req.body;
+  assert(username, 400, { code: 3000, message: 'no username' });
+  assert(email, 400, { code: 3000, message: 'no email' });
+  assert(password, 400, { code: 3000, message:'no password' });
 
   mongoClient
     .User({ username, email, password })
@@ -53,8 +56,10 @@ AdminRouter.route("/").post(checkBody(["username", "email", "password"]), (req, 
 });
 
 /* 修改用户 */
-AdminRouter.route("/").put(checkBody(["id"]), (req, res, next) => {
+AdminRouter.route("/").put(check("body", ["id"]), (req, res, next) => {
   let { id, username, email } = req.body;
+  assert(id, 400, { code: 3000, message:'no id' });
+
   let condition = {};
   if (username) {
     condition.username = username;
@@ -67,7 +72,7 @@ AdminRouter.route("/").put(checkBody(["id"]), (req, res, next) => {
   // }
   mongoClient.User.findByIdAndUpdate(id, condition)
     .then((user) => {
-      assert(user, 200, { code: 3003, message: "user don't exist" });
+      assert(user, 202, { code: 3003, message: "user don't exist" });
       log.info(`modify user: ${user.username} with condition: ${condition}`);
       respond(res, 200, null, "success");
     })
@@ -77,12 +82,13 @@ AdminRouter.route("/").put(checkBody(["id"]), (req, res, next) => {
 });
 
 /* 删除用户 */
-AdminRouter.route("/").delete(checkBody(["id"]), (req, res, next) => {
+AdminRouter.route("/").delete(check("body", ["id"]), (req, res, next) => {
   let { id } = req.body;
+  assert(id, 400, { code: 3000, message:'no id' });
 
   mongoClient.User.findByIdAndRemove(id)
     .then((user) => {
-      assert(user, 200, { code: 3003, message: "user don't exist" });
+      assert(user, 202, { code: 3003, message: "user don't exist" });
       /* 删除user所有的tag */
       return mongoClient.Tags.find({ user: id }).then((tags) => {
         // let deleteUser = mongoClient.User.deleteOne({ username });

@@ -108,7 +108,7 @@ var config = {
       '/map':     { level: 'DEBUG', appenders: ['console', '/map']},
       '/coord':   { level: 'DEBUG', appenders: ['console', '/coord']},
       locManager: { level: 'DEBUG', appenders: ['console', 'solving']},
-      cycLoad:    { level: 'TRACE', appenders: ['aboveDiag', 'diag']}
+      cycLoad:    { level: 'DEBUG', appenders: ['aboveDiag', 'diag']}
     },
     pm2: true,
     pm2InstanceVar: 'INSTANCE_ID'

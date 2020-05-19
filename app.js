@@ -1,5 +1,6 @@
 const express = require("express");
 var bodyParser = require("body-parser");
+var path = require('path');
 var app = new express();
 var WebSocketServer = require("websocket").server;
 var WebSocketRouter = require("websocket").router;
@@ -75,9 +76,6 @@ router.mount("/root", "echo-protocol", (request) =>
 router.mount("/map", "echo-protocol", (request) =>
   require("./routes/webSocket/map")(request, globalValues)
 );
-// router.mount("/web", "echo-protocol", (request) =>
-//   require("./routes/webSocket/web")(request, globalValues)
-// );
 
 let userAuth = require('./middleware/auth')(globalValues.mongoClient.User, 'user');
 let adminAuth = require('./middleware/auth')(globalValues.mongoClient.AdminUser, 'admin');
@@ -85,6 +83,9 @@ let adminAuth = require('./middleware/auth')(globalValues.mongoClient.AdminUser,
 /* http use middleware */
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.set("secret", "jwt-token");
 
@@ -98,11 +99,12 @@ app.use("/anchor", userAuth, require("./routes/webRoute/anchor")(globalValues).U
 app.use("/tag", userAuth, require("./routes/webRoute/tag")(globalValues).UserRouter);
 
 app.use((err, req, res, next) => {
-  // let error = err.status || 500;
+  let error = err.status || 500;
   let code = err.code;
   let message = err.message;
   if (code === 11000) {
     message = "duplicate key error";
   }
-  res.send({ code, message });
+  res.status(error).send({ code, message });
+  // res.send({ code, message });
 });
