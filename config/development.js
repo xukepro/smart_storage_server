@@ -3,6 +3,7 @@ var config = {
   redis: {
     port: '6379',
     host: '127.0.0.1',
+    password: '123456',
     sortedSet: {
       key: 'sorted-anchors',
       loadTimeInterval: 1000, // ms
@@ -31,7 +32,7 @@ var config = {
     deploymentHeight: 0, // m
     TRITimeout: 10, // s
     DOPWeight: 2,
-    windowSize: 5 // windowSize + 1 = fullSize
+    windowSize: 2 // windowSize + 1 = fullSize
   },
   enable_map: 1,
   log4js: {
