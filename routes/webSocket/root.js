@@ -45,7 +45,7 @@ function messageHandler (message) {
     } */
 
   if (!Object.prototype.hasOwnProperty.call(json, 'aId')
-      || !Object.prototype.hasOwnProperty.call(json, 'tags')) {
+    || !Object.prototype.hasOwnProperty.call(json, 'tags')) {
     log.error('wrong message data');
     return;
   }
@@ -74,11 +74,11 @@ function messageHandler (message) {
     });
 
   // save request in mongodb
-  mongoClient.insertRequest(json)
-    .then(function (res) {
-      log.trace('MongoDB insert success');
-    })
-    .catch(function (err) {
-      throw err;
-    });
+  // mongoClient.insertRequest(json)
+  //   .then(function (res) {
+  //     log.trace('MongoDB insert success');
+  //   })
+  //   .catch(function (err) {
+  //     throw err;
+  //   });
 }

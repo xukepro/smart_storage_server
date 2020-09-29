@@ -18,14 +18,14 @@ module.exports = function init (globalValues) {
 // 管理员/用户登录
 const login = (level) => (req, res, next) => {
   let { username, password } = req.body;
-  assert(username, 400, { code: 3000, message:'no username' });
-  assert(password, 400, { code: 3000, message:'no password' });
+  assert(username, 400, { code: 3000, message: 'no username' });
+  assert(password, 400, { code: 3000, message: 'no password' });
 
   let findUser;
   if (level === "admin") {
-    findUser = mongoClient.AdminUser.findOne({ username })
+    findUser = mongoClient.AdminUser.findOne({ username });
   } else if (level === "user") {
-    findUser = mongoClient.User.findOne({ username })
+    findUser = mongoClient.User.findOne({ username });
   }
   findUser
     .select("+password")
@@ -35,12 +35,10 @@ const login = (level) => (req, res, next) => {
       assert(isValid, 202, { code: 3003, message: "password error" });
       // let token = jwt.sign({ id: user._id }, req.app.get("secret"), { expiresIn: expirteTime });
       user.lastLoginTime = Date.now();
-      console.log('1 '+user);
-      user.save().then((res)=>{
-        console.log('2 '+res);
-        mongoClient.User.findOne({ username }).select("+lastLoginTime").then((user)=>{
-          console.log('3 '+user);
-        })
+      user.save().then((res) => {
+        mongoClient.User.findOne({ username }).select("+lastLoginTime").then((user) => {
+          // console.log('3 '+user);
+        });
       });
       let token = jwt.sign({ id: user._id }, req.app.get("secret"));
       log.info(`${level === "admin" ? "adminUser" : "user"}: ${username} login`);
@@ -57,9 +55,9 @@ UserRouter.route("/login").post(check("body", ["username", "password"]), login("
 // 用户注册
 const userRegister = (req, res, next) => {
   let { username, password, email } = req.body;
-  assert(username, 400, { code: 3000, message:'no username' });
-  assert(password, 400, { code: 3000, message:'no password' });
-  assert(email, 400, { code: 3000, message:'no email' });
+  assert(username, 400, { code: 3000, message: 'no username' });
+  assert(password, 400, { code: 3000, message: 'no password' });
+  assert(email, 400, { code: 3000, message: 'no email' });
 
   mongoClient
     .User({ username, password, email })
@@ -78,9 +76,9 @@ UserRouter.route("/register").post(check("body", ["username", "password", "email
 // 用户找回密码
 const userGetBackPassword = (req, res, next) => {
   let { username, password, email } = req.body;
-  assert(username, 400, { code: 3000, message:'no username' });
-  assert(password, 400, { code: 3000, message:'no password' });
-  assert(email, 400, { code: 3000, message:'no email' });
+  assert(username, 400, { code: 3000, message: 'no username' });
+  assert(password, 400, { code: 3000, message: 'no password' });
+  assert(email, 400, { code: 3000, message: 'no email' });
 
   mongoClient
     .User.findOne({ username, email })
@@ -101,9 +99,9 @@ UserRouter.route("/getBackPassword").post(check("body", ["username", "password",
 // 用户修改密码
 const userUpdatePassword = (req, res, next) => {
   let { username, oldPassword, newPassword } = req.body;
-  assert(username, 400, { code: 3000, message:'no username' });
-  assert(oldPassword, 400, { code: 3000, message:'no oldPassword' });
-  assert(newPassword, 400, { code: 3000, message:'no newPassword' });
+  assert(username, 400, { code: 3000, message: 'no username' });
+  assert(oldPassword, 400, { code: 3000, message: 'no oldPassword' });
+  assert(newPassword, 400, { code: 3000, message: 'no newPassword' });
 
   mongoClient.User.findOne({ username })
     .select("+password")
@@ -113,7 +111,7 @@ const userUpdatePassword = (req, res, next) => {
       assert(isValid, 202, { code: 3003, message: "password error" });
       log.info(`update password of user: ${username}`);
       user.password = newPassword;
-      return user.save()
+      return user.save();
     }).then((user) => {
       respond(res, 200, { user }, "success");
     })
@@ -126,7 +124,7 @@ UserRouter.route("/updatePassword").post(check("body", ["username", "oldPassword
 // 检查用户名是否存在
 const checkName = (req, res, next) => {
   let { username } = req.query;
-  assert(username, 400, { code: 3000, message:'no username' });
+  assert(username, 400, { code: 3000, message: 'no username' });
 
   mongoClient.User.findOne({ username })
     .then((user) => {
