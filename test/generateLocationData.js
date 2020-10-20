@@ -5,6 +5,7 @@ var tags = [];
 var rcoords = {};
 var client = new WebSocketClient();
 const MongoClient = require("../lib/mongoClient");
+const { distance } = require("mathjs");
 const mongoClient = new MongoClient(config.mongodb, log4js, tags, rcoords);
 
 client.on("connectFailed", function (error) {
@@ -91,45 +92,10 @@ client.on("connect", function (connection) {
     return Pr0 - (10 * PathLossExponent * Math.log(DistanceMsr / Dref) / Math.log(10)) + GaussRandom;
   };
 
-  // const head = (aId) => {
-
-  //   return (60 + Math.ceil(Math.random() * 10)).toString(16);
-  // };
-
-  // const tail = (tIdArr, n) => {
-  //   let arr = tIdArr[n].split("-");
-  //   return {
-  //     major: (+arr[0]).toString(16),
-  //     minor: (+arr[1]).toString(16)
-  //   };
-  // };
-
-  // const generate = (aId, n) => {
-  //   let json = {
-  //     aId: aId,
-  //     tags: [],
-  //     timestamp: Date.now()
-  //   };
-  //   for (let j = 0; j < n; j++) {
-  //     // let str = head() + "FDA50693A4E24FB1AFCFC6EB076478252711" + tail[j];
-  //     let str = head(aId) + "FDA50693A4E24FB1AFCFC6EB07647825" + tail(tIdArr, j).major + tail(tIdArr, j).minor;
-  //     // console.log(str);
-  //     json.tags.push(str);
-  //   }
-  //   return json;
-  // };
-
-  // const cyclicSend = (n) => {
-  //   for (let i in aIdArr) {
-  //     (function (i) {
-  //       setTimeout(function () {
-  //         // console.log(generate(aIdArr[i]));
-  //         connection.sendUTF(JSON.stringify(generate(aIdArr[i], n)));
-  //         // console.log(generate(aIdArr[i], n));
-  //       }, i * 10);
-  //     })(i);
-  //   }
-  // };
+  const simplePredictRSSI = (distance) => {
+    let GaussRandom = getNumberInNormalDistribution(0, 3);
+    return -38.04 - (10 * 2.2 * Math.log(distance) / Math.log(10)) + GaussRandom;
+  };
 
 
   let timer = 0;
@@ -143,13 +109,34 @@ client.on("connect", function (connection) {
       "updateTime" : ISODate("2020-06-04T03:22:06.678Z")
     }]
     */
-    let tag = { tId: "10001-04096", x: 7, y: 7 };
+    let tag = { tId: "10001-04096", x: 2, y: 1 };
 
 
-    setInterval(() => {
-      anchors.forEach(anchor => {
+    let interval = setInterval(() => {
+      // anchors.forEach(anchor => {
+      //   let dis = Math.sqrt(Math.pow(tag.x - anchor.coords[0], 2) + Math.pow(tag.y - anchor.coords[1], 2));
+      //   let pr = simplePredictRSSI(dis);
+      //   let head = Math.abs(Math.round(pr)).toString(16);
+      //   let arr = tag.tId.split("-");
+      //   let major = (+arr[0]).toString(16);
+      //   let minor = (+arr[1]).toString(16);
+
+      //   let json = {
+      //     aId: anchor.aId,
+      //     tags: [],
+      //     timestamp: Date.now()
+      //   };
+      //   let str = head + "FDA50693A4E24FB1AFCFC6EB07647825" + major + minor;
+      //   json.tags.push(str);
+      //   console.log(dis, pr, Math.round(pr), anchor.coords[0], anchor.coords[1]);
+      //   console.log(JSON.stringify(json));
+      //   connection.sendUTF(JSON.stringify(json));
+      //   console.log(`send! timer=${timer}`);
+      // });
+      for (let i = 0; i < 2; i++) {
+        let anchor = anchors[i];
         let dis = Math.sqrt(Math.pow(tag.x - anchor.coords[0], 2) + Math.pow(tag.y - anchor.coords[1], 2));
-        pr = predictedRSSI(dis);
+        let pr = simplePredictRSSI(dis);
         let head = Math.abs(Math.round(pr)).toString(16);
         let arr = tag.tId.split("-");
         let major = (+arr[0]).toString(16);
@@ -162,11 +149,13 @@ client.on("connect", function (connection) {
         };
         let str = head + "FDA50693A4E24FB1AFCFC6EB07647825" + major + minor;
         json.tags.push(str);
-        // console.log(JSON.stringify(json));
+        console.log(dis, pr, Math.round(pr), anchor.coords[0], anchor.coords[1]);
+        console.log(JSON.stringify(json));
         connection.sendUTF(JSON.stringify(json));
         console.log(`send! timer=${timer}`);
-      });
+      }
 
+      // clearInterval(interval);
       timer = timer + 1;
     }, 1000);
   });
