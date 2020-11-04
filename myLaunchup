@@ -1,0 +1,8 @@
+#!/bin/bash
+
+mongod --config ../mongod/mongod-master.conf --fork
+mongod --config ../mongod/mongod-slave.conf --fork
+
+redis-server /etc/redis.conf
+
+pm2 start pm2.json
