@@ -3,6 +3,6 @@
 mongod --config ../mongod/mongod-master.conf --fork
 mongod --config ../mongod/mongod-slave.conf --fork
 
-redis-server /etc/redis.conf
+redis-server /etc/redis/redis.conf
 
 pm2 start pm2.json
