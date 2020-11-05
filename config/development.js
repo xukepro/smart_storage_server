@@ -1,5 +1,12 @@
+var fs = require('fs');
+
 var config = {
   http_port: '3004',
+  https_port: '3000',
+  sec: {
+    key: fs.readFileSync(`${__dirname}/../../certificates/4720548_sgear.xyz.key`),
+    crt: fs.readFileSync(`${__dirname}/../../certificates/4720548_sgear.xyz.pem`)
+  },
   redis: {
     port: '6379',
     host: '127.0.0.1',
